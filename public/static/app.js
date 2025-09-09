@@ -20,7 +20,7 @@ const App = {
 
   // Setup Axios defaults
   setupAxiosDefaults() {
-    axios.defaults.baseURL = '/api';
+    axios.defaults.baseURL = '';
     axios.defaults.headers.common['Content-Type'] = 'application/json';
     
     if (this.token) {
