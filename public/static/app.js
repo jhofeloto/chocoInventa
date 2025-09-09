@@ -56,7 +56,7 @@ const App = {
     }
 
     try {
-      const response = await axios.post('/auth/verify');
+      const response = await axios.post('/api/auth/verify');
       if (response.data.success) {
         this.user = response.data.user;
         // Update landing page navigation for authenticated users
@@ -174,7 +174,7 @@ const App = {
   // Authentication methods
   async login(email, password) {
     try {
-      const response = await axios.post('/auth/login', { email, password });
+      const response = await axios.post('/api/auth/login', { email, password });
       
       if (response.data.success) {
         this.token = response.data.token;
@@ -647,7 +647,7 @@ const App = {
 
   async register(userData) {
     try {
-      const response = await axios.post('/auth/register', {
+      const response = await axios.post('/api/auth/register', {
         name: userData.name,
         email: userData.email,
         institution: userData.institution,
