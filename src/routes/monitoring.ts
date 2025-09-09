@@ -98,7 +98,7 @@ monitoring.get('/admin/status', async (c) => {
 // Métricas del sistema
 monitoring.get('/admin/metrics', async (c) => {
   try {
-    const logMetrics = logger.getMetrics();
+    const logMetrics = logger.getLogs({ limit: 100 });
     const errorStats = errorMonitor.getErrorStats();
     
     return c.json({
