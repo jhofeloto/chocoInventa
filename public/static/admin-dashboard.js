@@ -82,6 +82,11 @@ const AdminDashboard = {
       }
     });
 
+    // Open system logs dashboard
+    document.getElementById('openSystemLogs')?.addEventListener('click', () => {
+      this.openSystemLogsDashboard();
+    });
+
     // Force health check
     document.getElementById('forceHealthCheck')?.addEventListener('click', () => {
       this.forceHealthCheck();
@@ -1067,5 +1072,54 @@ const AdminDashboard = {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  },
+
+  // Abrir dashboard avanzado de logs del sistema
+  openSystemLogsDashboard() {
+    // Crear modal full-screen para el sistema de logs
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-white z-50 overflow-auto';
+    modal.innerHTML = `
+      <div class="min-h-screen">
+        <div class="bg-gray-800 text-white p-4 flex justify-between items-center">
+          <div class="flex items-center">
+            <i class="fas fa-chart-line mr-2"></i>
+            <h1 class="text-xl font-bold">Sistema Avanzado de Logs y Monitoreo</h1>
+          </div>
+          <button onclick="this.closest('.fixed').remove()" class="text-white hover:text-gray-300">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <div id="systemDashboard"></div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Inicializar el sistema de dashboard si está disponible
+    if (typeof SystemDashboard !== 'undefined') {
+      const dashboard = new SystemDashboard();
+      dashboard.render();
+      dashboard.init();
+    } else {
+      // Cargar el script del sistema de logs si no está disponible
+      const script = document.createElement('script');
+      script.src = '/static/system-dashboard.js';
+      script.onload = () => {
+        if (typeof SystemDashboard !== 'undefined') {
+          const dashboard = new SystemDashboard();
+          dashboard.render();
+          dashboard.init();
+        } else {
+          console.error('No se pudo cargar SystemDashboard');
+          App.showNotification('Error al cargar el sistema de logs', 'error');
+        }
+      };
+      script.onerror = () => {
+        console.error('Error cargando system-dashboard.js');
+        App.showNotification('Error al cargar el sistema de logs', 'error');
+      };
+      document.head.appendChild(script);
+    }
   }
 };

@@ -21,9 +21,9 @@ projects.get('/', async (c) => {
     const offset = (page - 1) * limit;
 
     let query = `
-      SELECT p.*, u.name as creator_name 
-      FROM projects p 
-      LEFT JOIN users u ON p.created_by = u.id
+      SELECT projects.*, users.name as creator_name 
+      FROM projects 
+      LEFT JOIN users ON projects.created_by = users.id
     `;
     let countQuery = 'SELECT COUNT(*) as total FROM projects';
     const params: any[] = [];
@@ -31,13 +31,13 @@ projects.get('/', async (c) => {
 
     // Add search condition
     if (search) {
-      conditions.push('(p.title LIKE ? OR p.responsible_person LIKE ? OR p.summary LIKE ?)');
+      conditions.push('(title LIKE ? OR responsible_person LIKE ? OR summary LIKE ?)');
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
 
     // Add status filter
     if (status && ['active', 'completed'].includes(status)) {
-      conditions.push('p.status = ?');
+      conditions.push('status = ?');
       params.push(status);
     }
 
@@ -52,14 +52,14 @@ projects.get('/', async (c) => {
     let orderBy = ' ORDER BY ';
     switch (sort) {
       case 'title':
-        orderBy += 'p.title ASC';
+        orderBy += 'title ASC';
         break;
       case 'responsible_person':
-        orderBy += 'p.responsible_person ASC';
+        orderBy += 'responsible_person ASC';
         break;
       case 'created_at':
       default:
-        orderBy += 'p.created_at DESC';
+        orderBy += 'created_at DESC';
         break;
     }
     query += orderBy + ' LIMIT ? OFFSET ?';

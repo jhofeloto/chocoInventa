@@ -1400,6 +1400,16 @@ const App = {
       };
       document.head.appendChild(script);
     }
+
+    // Load system dashboard for logs if not already loaded
+    if (typeof SystemDashboard === 'undefined') {
+      const systemScript = document.createElement('script');
+      systemScript.src = '/static/system-dashboard.js';
+      systemScript.onload = () => {
+        console.log('Sistema de logs cargado');
+      };
+      document.head.appendChild(systemScript);
+    }
   },
 
   // Initialize logos

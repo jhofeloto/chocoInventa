@@ -10,6 +10,8 @@ import users from './routes/users';
 import monitoring from './routes/monitoring';
 import settings from './routes/settings';
 import { loggingMiddleware, logger } from './monitoring/logger';
+import { systemLoggingMiddleware, systemLogger } from './monitoring/systemLogger';
+import systemLogs from './routes/systemLogs';
 import { errorHandlerMiddleware } from './monitoring/errorHandler';
 import { performanceMiddleware, performanceMonitor } from './monitoring/performance';
 
@@ -32,6 +34,7 @@ app.use(renderer);
 // Add monitoring middleware
 app.use('*', performanceMiddleware(performanceMonitor));
 app.use('*', loggingMiddleware(logger));
+app.use('*', systemLoggingMiddleware()); // Nuevo sistema de logs avanzado
 app.use('*', errorHandlerMiddleware());
 
 // API Routes
@@ -39,6 +42,7 @@ app.route('/api/auth', auth);
 app.route('/api/projects', projects);
 app.route('/api/users', users);
 app.route('/api/monitoring', monitoring);
+app.route('/api/system-logs', systemLogs); // Nueva ruta para logs del sistema
 app.route('/api/settings', settings);
 
 // Main application routes - Landing Page
@@ -443,10 +447,14 @@ app.get('/admin', (c) => {
               
               <div class="card p-6">
                 <h3 class="text-lg font-semibold mb-4">Herramientas de Administración</h3>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <button id="configureLogoButton" class="btn btn-primary">
                     <i class="fas fa-image mr-2"></i>
                     Configurar Logo
+                  </button>
+                  <button id="openSystemLogs" class="btn btn-info">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Sistema de Logs
                   </button>
                   <button id="generateTestLoad" class="btn btn-secondary">
                     <i class="fas fa-vial mr-2"></i>
