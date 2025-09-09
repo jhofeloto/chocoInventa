@@ -134,9 +134,14 @@ const App = {
   },
 
   // Projects methods
-  async loadProjects(search = '') {
+  async loadProjects(search = '', status = '', sort = 'created_at') {
     try {
-      const response = await axios.get(`/projects?search=${encodeURIComponent(search)}`);
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (status) params.append('status', status);
+      params.append('sort', sort);
+      
+      const response = await axios.get(`/projects?${params.toString()}`);
       if (response.data.success) {
         this.projects = response.data.projects;
         return this.projects;
@@ -159,6 +164,130 @@ const App = {
       this.showNotification('Error al cargar el proyecto', 'error');
     }
     return null;
+  },
+
+  showCreateProjectModal() {
+    // Create and show modal
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.id = 'createProjectModal';
+    
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Crear Nuevo Proyecto</h3>
+          <button class="modal-close" onclick="this.closest('.modal').remove(); document.body.style.overflow = '';">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="createProjectForm">
+            <div class="form-group">
+              <label for="projectTitle">Título del Proyecto *</label>
+              <input 
+                type="text" 
+                id="projectTitle" 
+                class="form-input" 
+                placeholder="Ej: Biodiversidad Marina del Pacífico Chocoano"
+                required 
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="projectResponsible">Responsable Principal *</label>
+              <input 
+                type="text" 
+                id="projectResponsible" 
+                class="form-input" 
+                placeholder="Nombre del investigador principal"
+                required 
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="projectSummary">Resumen del Proyecto *</label>
+              <textarea 
+                id="projectSummary" 
+                class="form-input" 
+                rows="4"
+                placeholder="Describe los objetivos, metodología y resultados esperados del proyecto..."
+                required
+              ></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="projectStatus">Estado del Proyecto</label>
+              <select id="projectStatus" class="form-input">
+                <option value="active">Activo</option>
+                <option value="completed">Finalizado</option>
+              </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-full">
+              <i class="fas fa-plus mr-2"></i>
+              Crear Proyecto
+            </button>
+          </form>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    // Focus on first input
+    setTimeout(() => {
+      document.getElementById('projectTitle').focus();
+    }, 100);
+    
+    // Handle form submission
+    document.getElementById('createProjectForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        title: document.getElementById('projectTitle').value.trim(),
+        responsible_person: document.getElementById('projectResponsible').value.trim(),
+        summary: document.getElementById('projectSummary').value.trim(),
+        status: document.getElementById('projectStatus').value
+      };
+      
+      if (this.validateProjectForm(formData)) {
+        const result = await this.createProject(formData);
+        if (result) {
+          modal.remove();
+          document.body.style.overflow = '';
+          // Refresh projects list
+          await this.setupProjectFilters();
+        }
+      }
+    });
+    
+    // Close modal on escape or outside click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+        document.body.style.overflow = '';
+      }
+    });
+  },
+
+  validateProjectForm(data) {
+    if (!data.title || data.title.length < 3) {
+      this.showNotification('El título debe tener al menos 3 caracteres', 'error');
+      return false;
+    }
+    
+    if (!data.responsible_person || data.responsible_person.length < 2) {
+      this.showNotification('El responsable debe tener al menos 2 caracteres', 'error');
+      return false;
+    }
+    
+    if (!data.summary || data.summary.length < 10) {
+      this.showNotification('El resumen debe tener al menos 10 caracteres', 'error');
+      return false;
+    }
+    
+    return true;
   },
 
   async createProject(projectData) {
@@ -462,36 +591,70 @@ const App = {
     if (!navbar) return;
 
     navbar.innerHTML = `
-      <nav class="navbar">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="navbar bg-white border-b border-border shadow-sm">
+        <div class="container mx-auto px-4">
           <div class="flex justify-between items-center h-16">
-            <div class="flex items-center">
-              <h1 class="text-xl font-bold text-white">
-                <i class="fas fa-microscope mr-2"></i>
-                CODECTI Platform
-              </h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              <span class="text-white text-sm">
-                <i class="fas fa-user mr-1"></i>
-                ${this.user?.name || 'Usuario'}
-              </span>
-              ${this.user?.role === 'admin' ? `
+            <div class="flex items-center space-x-8">
+              <div class="flex items-center">
+                <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-3">
+                  <i class="fas fa-microscope text-white text-lg"></i>
+                </div>
+                <div>
+                  <h1 class="text-xl font-bold text-foreground">CODECTI</h1>
+                  <p class="text-xs text-muted-foreground">Plataforma CTeI</p>
+                </div>
+              </div>
+              
+              <div class="hidden md:flex space-x-6">
                 <a 
-                  href="/admin" 
-                  onclick="App.navigateToAdmin(); return false;"
-                  class="text-white hover:text-gray-200 text-sm"
+                  href="/dashboard" 
+                  onclick="event.preventDefault(); App.navigateToDashboard();"
+                  class="nav-link ${this.currentPath === '/dashboard' ? 'nav-link-active' : ''}"
                 >
-                  <i class="fas fa-cogs mr-1"></i>
-                  Admin
+                  <i class="fas fa-tachometer-alt mr-1"></i>
+                  Dashboard
                 </a>
+                <button 
+                  onclick="App.showCreateProjectModal();"
+                  class="nav-link"
+                >
+                  <i class="fas fa-plus mr-1"></i>
+                  Nuevo Proyecto
+                </button>
+              </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+              <div class="user-info">
+                <div class="flex items-center space-x-2">
+                  <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-secondary-foreground text-sm"></i>
+                  </div>
+                  <div class="hidden sm:block">
+                    <p class="text-sm font-medium text-foreground">${this.escapeHtml(this.user?.name || 'Usuario')}</p>
+                    <p class="text-xs text-muted-foreground capitalize">${this.user?.role || 'researcher'} ${this.user?.institution ? '• ' + this.escapeHtml(this.user.institution) : ''}</p>
+                  </div>
+                </div>
+              </div>
+              
+              ${this.user?.role === 'admin' ? `
+                <button 
+                  onclick="App.navigateToAdmin();"
+                  class="btn btn-secondary btn-sm"
+                  title="Panel de Administración"
+                >
+                  <i class="fas fa-cog mr-1"></i>
+                  <span class="hidden sm:inline">Admin</span>
+                </button>
               ` : ''}
+              
               <button 
                 onclick="App.logout()" 
-                class="text-white hover:text-gray-200 text-sm"
+                class="btn btn-outline btn-sm"
+                title="Cerrar Sesión"
               >
                 <i class="fas fa-sign-out-alt mr-1"></i>
-                Salir
+                <span class="hidden sm:inline">Cerrar Sesión</span>
               </button>
             </div>
           </div>
@@ -504,43 +667,110 @@ const App = {
     const container = document.getElementById('projects-container');
     if (!container) return;
 
-    // Show loading state
     container.innerHTML = `
-      <div class="max-w-7xl mx-auto p-6">
-        <div class="flex justify-between items-center mb-8">
-          <h2 class="text-2xl font-bold text-gray-900">
-            <i class="fas fa-folder-open mr-2 text-codecti-primary"></i>
-            Proyectos CTeI
-          </h2>
-          <button 
-            onclick="App.showCreateProjectModal()" 
-            class="btn btn-primary"
-          >
-            <i class="fas fa-plus mr-2"></i>
-            Nuevo Proyecto
-          </button>
+      <div class="container mx-auto p-6">
+        <div class="mb-8">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 class="text-3xl font-bold text-foreground mb-2">
+                <i class="fas fa-flask text-primary mr-3"></i>
+                Proyectos CTeI
+              </h2>
+              <p class="text-muted-foreground">Gestiona y monitorea todos los proyectos de investigación</p>
+            </div>
+            <button 
+              onclick="App.showCreateProjectModal();"
+              class="btn btn-primary"
+            >
+              <i class="fas fa-plus mr-2"></i>
+              Nuevo Proyecto
+            </button>
+          </div>
         </div>
         
-        <div class="search-container mb-6">
-          <div class="relative">
-            <input 
-              type="text" 
-              id="searchInput" 
-              class="search-input" 
-              placeholder="Buscar proyectos..."
-            >
-            <i class="fas fa-search search-icon"></i>
+        <div class="mb-6">
+          <div class="flex flex-col sm:flex-row gap-4 mb-4">
+            <div class="flex-1 relative">
+              <input 
+                type="text" 
+                id="searchInput"
+                class="form-input pl-10"
+                placeholder="Buscar por título, responsable o contenido..."
+              >
+              <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
+            </div>
+            
+            <div class="flex gap-2">
+              <select id="statusFilter" class="form-input min-w-[140px]">
+                <option value="">Todos</option>
+                <option value="active">Activos</option>
+                <option value="completed">Finalizados</option>
+              </select>
+              
+              <select id="sortBy" class="form-input min-w-[120px]">
+                <option value="created_at">Más recientes</option>
+                <option value="title">Por título</option>
+                <option value="responsible_person">Por responsable</option>
+              </select>
+            </div>
+          </div>
+          
+          <div id="projectsStats" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="stats-card">
+              <div class="flex items-center">
+                <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mr-4">
+                  <i class="fas fa-flask text-white text-lg"></i>
+                </div>
+                <div>
+                  <p class="text-sm text-muted-foreground">Total Proyectos</p>
+                  <p class="text-2xl font-bold text-foreground" id="totalProjects">-</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="stats-card">
+              <div class="flex items-center">
+                <div class="w-12 h-12 bg-accent rounded-lg flex items-center justify-center mr-4">
+                  <i class="fas fa-play-circle text-white text-lg"></i>
+                </div>
+                <div>
+                  <p class="text-sm text-muted-foreground">Activos</p>
+                  <p class="text-2xl font-bold text-foreground" id="activeProjects">-</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="stats-card">
+              <div class="flex items-center">
+                <div class="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center mr-4">
+                  <i class="fas fa-check-circle text-white text-lg"></i>
+                </div>
+                <div>
+                  <p class="text-sm text-muted-foreground">Finalizados</p>
+                  <p class="text-2xl font-bold text-foreground" id="completedProjects">-</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
         <div id="projectsList" class="loading">
-          <div class="space-y-4">
+          <div class="grid gap-4">
             ${Array(3).fill(0).map(() => `
               <div class="card p-6 animate-pulse">
-                <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div class="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
-                <div class="h-3 bg-gray-200 rounded mb-2"></div>
-                <div class="h-3 bg-gray-200 rounded w-2/3"></div>
+                <div class="flex justify-between items-start mb-4">
+                  <div class="flex-1">
+                    <div class="h-5 bg-muted rounded w-3/4 mb-2"></div>
+                    <div class="h-3 bg-muted rounded w-1/2"></div>
+                  </div>
+                  <div class="h-6 bg-muted rounded w-16"></div>
+                </div>
+                <div class="h-3 bg-muted rounded mb-2"></div>
+                <div class="h-3 bg-muted rounded w-2/3 mb-4"></div>
+                <div class="flex justify-between items-center">
+                  <div class="h-3 bg-muted rounded w-24"></div>
+                  <div class="h-8 bg-muted rounded w-20"></div>
+                </div>
               </div>
             `).join('')}
           </div>
@@ -548,20 +778,53 @@ const App = {
       </div>
     `;
 
-    // Load projects
+    // Load projects and setup filters
+    await this.setupProjectFilters();
+  },
+
+  async setupProjectFilters() {
+    // Load initial projects
     await this.loadProjects();
     this.displayProjects();
+    this.updateProjectStats();
 
-    // Setup search
+    // Setup search and filters
     const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const sortBy = document.getElementById('sortBy');
+
     let searchTimeout;
+    const performFilter = async () => {
+      const searchTerm = searchInput.value;
+      const status = statusFilter.value;
+      const sort = sortBy.value;
+      
+      await this.loadProjects(searchTerm, status, sort);
+      this.displayProjects();
+      this.updateProjectStats();
+    };
+
     searchInput.addEventListener('input', (e) => {
       clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(async () => {
-        await this.loadProjects(e.target.value);
-        this.displayProjects();
-      }, 300);
+      searchTimeout = setTimeout(performFilter, 300);
     });
+
+    statusFilter.addEventListener('change', performFilter);
+    sortBy.addEventListener('change', performFilter);
+  },
+
+  updateProjectStats() {
+    const totalElement = document.getElementById('totalProjects');
+    const activeElement = document.getElementById('activeProjects');
+    const completedElement = document.getElementById('completedProjects');
+
+    if (totalElement) totalElement.textContent = this.projects.length;
+    
+    const activeCount = this.projects.filter(p => p.status === 'active').length;
+    const completedCount = this.projects.filter(p => p.status === 'completed').length;
+    
+    if (activeElement) activeElement.textContent = activeCount;
+    if (completedElement) completedElement.textContent = completedCount;
   },
 
   displayProjects() {
@@ -570,49 +833,100 @@ const App = {
 
     if (this.projects.length === 0) {
       projectsList.innerHTML = `
-        <div class="text-center py-12">
-          <i class="fas fa-folder-open text-6xl text-gray-300 mb-4"></i>
-          <h3 class="text-xl font-medium text-gray-900 mb-2">No hay proyectos</h3>
-          <p class="text-gray-500">Crea tu primer proyecto para comenzar</p>
+        <div class="text-center py-16">
+          <div class="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-flask text-4xl text-muted-foreground"></i>
+          </div>
+          <h3 class="text-xl font-semibold text-foreground mb-2">No hay proyectos</h3>
+          <p class="text-muted-foreground mb-6">Crea tu primer proyecto para comenzar a gestionar tu investigación</p>
+          <button onclick="App.showCreateProjectModal();" class="btn btn-primary">
+            <i class="fas fa-plus mr-2"></i>
+            Crear Primer Proyecto
+          </button>
         </div>
       `;
       return;
     }
 
     const projectsHTML = this.projects.map(project => `
-      <div class="project-item fade-in" onclick="App.navigateToProject(${project.id})">
-        <div class="flex justify-between items-start mb-2">
-          <h3 class="project-title">${this.escapeHtml(project.title)}</h3>
+      <div class="project-card" data-project-id="${project.id}">
+        <div class="flex justify-between items-start mb-4">
+          <div class="flex-1">
+            <h3 class="project-title mb-2">${this.escapeHtml(project.title)}</h3>
+            <div class="project-responsible">
+              <i class="fas fa-user text-muted-foreground mr-2"></i>
+              <span class="text-sm text-muted-foreground">Responsable:</span>
+              <span class="text-sm font-medium text-foreground ml-1">${this.escapeHtml(project.responsible_person)}</span>
+            </div>
+          </div>
           <span class="status-badge ${project.status === 'active' ? 'status-active' : 'status-completed'}">
             <i class="fas fa-circle text-xs mr-1"></i>
             ${project.status === 'active' ? 'Activo' : 'Finalizado'}
           </span>
         </div>
-        <p class="project-responsible">
-          <i class="fas fa-user text-gray-400 mr-1"></i>
-          <strong>Responsable:</strong> ${this.escapeHtml(project.responsible_person)}
-        </p>
-        <p class="project-summary">${this.escapeHtml(project.summary)}</p>
+        
+        <p class="project-summary">${this.escapeHtml(project.summary.substring(0, 150))}${project.summary.length > 150 ? '...' : ''}</p>
+        
         <div class="project-meta">
-          <span>
-            <i class="fas fa-calendar text-gray-400 mr-1"></i>
-            ${this.formatDate(project.created_at)}
-          </span>
-          <span>
-            <i class="fas fa-user text-gray-400 mr-1"></i>
-            ${this.escapeHtml(project.creator_name || 'Usuario')}
-          </span>
-          ${project.document_filename ? `
-            <span class="text-codecti-primary">
-              <i class="fas fa-file-alt mr-1"></i>
-              Documento disponible
+          <div class="flex flex-wrap gap-4 text-xs text-muted-foreground">
+            <span>
+              <i class="fas fa-calendar mr-1"></i>
+              ${this.formatDate(project.created_at)}
             </span>
-          ` : ''}
+            <span>
+              <i class="fas fa-user mr-1"></i>
+              ${this.escapeHtml(project.creator_name || 'Usuario')}
+            </span>
+            ${project.document_filename ? `
+              <span class="text-primary">
+                <i class="fas fa-file-alt mr-1"></i>
+                Documento disponible
+              </span>
+            ` : ''}
+          </div>
+        </div>
+        
+        <div class="project-actions">
+          <button 
+            onclick="App.navigateToProject(${project.id})"
+            class="btn btn-primary btn-sm"
+          >
+            <i class="fas fa-eye mr-1"></i>
+            Ver Detalles
+          </button>
+          
+          <button 
+            onclick="App.showEditProjectModal(${project.id})"
+            class="btn btn-secondary btn-sm"
+          >
+            <i class="fas fa-edit mr-1"></i>
+            Editar
+          </button>
+          
+          ${project.document_filename ? `
+            <button 
+              onclick="App.downloadDocument(${project.id})"
+              class="btn btn-outline btn-sm"
+              title="Descargar documento"
+            >
+              <i class="fas fa-download mr-1"></i>
+              Documento
+            </button>
+          ` : `
+            <button 
+              onclick="App.showUploadDocumentModal(${project.id})"
+              class="btn btn-outline btn-sm"
+              title="Subir documento"
+            >
+              <i class="fas fa-upload mr-1"></i>
+              Subir Doc
+            </button>
+          `}
         </div>
       </div>
     `).join('');
 
-    projectsList.innerHTML = `<div class="project-list">${projectsHTML}</div>`;
+    projectsList.innerHTML = `<div class="projects-grid">${projectsHTML}</div>`;
   },
 
   async renderProjectDetail(projectId) {
