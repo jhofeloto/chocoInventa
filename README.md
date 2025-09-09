@@ -8,11 +8,19 @@ La Plataforma CTeI CODECTI es un MVP (Producto Mínimo Viable) desarrollado para
 
 ## ✨ Funcionalidades Implementadas
 
-### 🔐 Sistema de Autenticación (HU-01)
-- Login seguro con JWT tokens
-- Diferenciación de roles (admin/collaborator)
-- Middleware de autenticación para APIs
-- Validación de sesiones
+### 🎨 Landing Page Moderna
+- ✅ **Página de aterrizaje profesional** con información completa de la plataforma
+- ✅ **Sistema de diseño OKLCH** con variables CSS modernas y soporte dark mode
+- ✅ **Call-to-action para registro** con modales interactivos
+- ✅ **Diseño responsive** optimizado para todos los dispositivos
+- ✅ **Animaciones y efectos visuales** para mejor experiencia de usuario
+
+### 🔐 Sistema de Autenticación Completo (HU-01)
+- ✅ **Login seguro** con JWT tokens
+- ✅ **Registro de nuevos usuarios** con validación completa
+- ✅ **Diferenciación de roles** (admin/collaborator/researcher)
+- ✅ **Middleware de autenticación** para APIs protegidas
+- ✅ **Validación de sesiones** y manejo de tokens
 
 ### 📊 Gestión de Proyectos (HU-02, HU-04, HU-05)
 - ✅ **Creación de proyectos** con validación completa
@@ -32,7 +40,9 @@ La Plataforma CTeI CODECTI es un MVP (Producto Mínimo Viable) desarrollado para
 
 ## 🚀 URLs de Acceso
 
-- **Plataforma Principal**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev
+- **Landing Page**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev
+- **Dashboard**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/dashboard
+- **Panel Admin**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/admin
 - **API Health Check**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/monitoring/health
 
 ## 👥 Credenciales de Prueba
@@ -40,12 +50,48 @@ La Plataforma CTeI CODECTI es un MVP (Producto Mínimo Viable) desarrollado para
 ### Administrador
 - **Email**: `admin@codecti.choco.gov.co`
 - **Password**: `password123`
+- **Institución**: `CODECTI Chocó`
 - **Permisos**: Todas las funcionalidades + dashboard de monitoreo
 
 ### Investigador Colaborador
 - **Email**: `investigador1@codecti.choco.gov.co`
 - **Password**: `password123`
+- **Institución**: `Universidad Tecnológica del Chocó`
 - **Permisos**: Gestión de proyectos
+
+### Investigador (Nuevo Rol)
+- **Email**: `investigador2@codecti.choco.gov.co`
+- **Password**: `password123`
+- **Institución**: `SINCHI - Instituto Amazónico de Investigaciones Científicas`
+- **Permisos**: Gestión de proyectos
+
+## 🆕 Registro de Nuevos Usuarios
+Los usuarios pueden registrarse directamente desde la landing page:
+1. Hacer clic en **"Registrarse"** en la navegación
+2. Completar el formulario con nombre, email, institución y contraseña
+3. Los nuevos usuarios obtienen automáticamente el rol de **"researcher"**
+
+## 🎨 Sistema de Diseño Moderno
+
+### OKLCH Color System
+- **Espacio de color OKLCH** para colores más vibrantes y consistentes
+- **Variables CSS semánticas** con nombres intuitivos (`--primary`, `--secondary`, etc.)
+- **Soporte para dark mode** automático con variables CSS
+- **Tipografía profesional** con Google Fonts (Montserrat, Playfair Display, Source Code Pro)
+- **Sistema de sombras** y efectos de elevación consistentes
+
+### Componentes de UI
+- **Botones** con múltiples variantes (primary, secondary, outline, etc.)
+- **Modales** responsivos con animaciones fluidas
+- **Cards** con efectos hover y elevation
+- **Formularios** con validación visual y feedback
+- **Grid system** responsivo para layouts complejos
+
+### Animaciones y Efectos
+- **Floating cards** en hero section con animaciones CSS
+- **Transiciones suaves** en todos los elementos interactivos
+- **Loading states** y feedback visual
+- **Hover effects** y micro-interacciones
 
 ## 🏗️ Arquitectura Técnica
 

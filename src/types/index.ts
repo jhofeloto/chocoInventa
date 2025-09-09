@@ -9,7 +9,8 @@ export interface User {
   id: number;
   email: string;
   name: string;
-  role: 'admin' | 'collaborator';
+  role: 'admin' | 'collaborator' | 'researcher';
+  institution?: string;
   created_at: string;
   is_active: boolean;
 }
@@ -18,7 +19,15 @@ export interface CreateUserRequest {
   email: string;
   password: string;
   name: string;
-  role: 'admin' | 'collaborator';
+  institution?: string;
+  role: 'admin' | 'collaborator' | 'researcher';
+}
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  institution: string;
+  password: string;
 }
 
 export interface LoginRequest {

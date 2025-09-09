@@ -65,7 +65,7 @@ const App = {
   routeHandler() {
     switch (this.currentPath) {
       case '/':
-        this.renderLoginPage();
+        this.renderLandingPage();
         break;
       case '/dashboard':
         this.renderDashboard();
@@ -195,18 +195,179 @@ const App = {
   },
 
   // UI Rendering methods
-  renderLoginPage() {
+  renderLandingPage() {
+    this.setupLandingPageEventListeners();
+    this.setupModalHandlers();
+    this.setupFloatingAnimations();
+  },
+
+  setupLandingPageEventListeners() {
+    // CTA Buttons
+    const ctaButtons = document.querySelectorAll('#ctaRegister, #ctaRegisterMain');
+    ctaButtons.forEach(btn => {
+      btn?.addEventListener('click', () => this.showRegisterModal());
+    });
+
+    // Learn More button
+    const learnMoreBtn = document.getElementById('learnMore');
+    learnMoreBtn?.addEventListener('click', () => {
+      document.querySelector('.features-section').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Navigation buttons
+    const showLoginBtn = document.getElementById('showLoginModal');
+    const showRegisterBtn = document.getElementById('showRegisterModal');
+    
+    showLoginBtn?.addEventListener('click', () => this.showLoginModal());
+    showRegisterBtn?.addEventListener('click', () => this.showRegisterModal());
+  },
+
+  setupModalHandlers() {
+    // Login Modal
+    const loginModal = document.getElementById('loginModal');
+    const closeLoginModal = document.getElementById('closeLoginModal');
     const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
-        if (email && password) {
-          await this.login(email, password);
+    const switchToRegister = document.getElementById('switchToRegister');
+
+    closeLoginModal?.addEventListener('click', () => this.hideModal('loginModal'));
+    switchToRegister?.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.hideModal('loginModal');
+      this.showRegisterModal();
+    });
+
+    // Login form handler
+    loginForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      if (email && password) {
+        await this.login(email, password);
+      }
+    });
+
+    // Register Modal
+    const registerModal = document.getElementById('registerModal');
+    const closeRegisterModal = document.getElementById('closeRegisterModal');
+    const registerForm = document.getElementById('registerForm');
+    const switchToLogin = document.getElementById('switchToLogin');
+
+    closeRegisterModal?.addEventListener('click', () => this.hideModal('registerModal'));
+    switchToLogin?.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.hideModal('registerModal');
+      this.showLoginModal();
+    });
+
+    // Register form handler
+    registerForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = {
+        name: document.getElementById('registerName').value,
+        email: document.getElementById('registerEmail').value,
+        institution: document.getElementById('registerInstitution').value,
+        password: document.getElementById('registerPassword').value,
+        confirmPassword: document.getElementById('registerConfirmPassword').value
+      };
+      
+      if (this.validateRegisterForm(formData)) {
+        await this.register(formData);
+      }
+    });
+
+    // Close modals when clicking outside
+    [loginModal, registerModal].forEach(modal => {
+      modal?.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          this.hideModal(modal.id);
         }
       });
+    });
+  },
+
+  setupFloatingAnimations() {
+    // Add floating animation to hero cards
+    const floatingCards = document.querySelectorAll('.floating-card');
+    floatingCards.forEach((card, index) => {
+      setInterval(() => {
+        const offset = Math.sin(Date.now() / 1000 + index) * 5;
+        card.style.transform = `translateY(${offset}px)`;
+      }, 16);
+    });
+  },
+
+  showLoginModal() {
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+  },
+
+  showRegisterModal() {
+    const modal = document.getElementById('registerModal');
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+  },
+
+  hideModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  },
+
+  validateRegisterForm(data) {
+    if (!data.name || !data.email || !data.institution || !data.password) {
+      this.showNotification('Por favor completa todos los campos', 'error');
+      return false;
+    }
+
+    if (data.password !== data.confirmPassword) {
+      this.showNotification('Las contraseñas no coinciden', 'error');
+      return false;
+    }
+
+    if (data.password.length < 6) {
+      this.showNotification('La contraseña debe tener al menos 6 caracteres', 'error');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      this.showNotification('Por favor ingresa un email válido', 'error');
+      return false;
+    }
+
+    return true;
+  },
+
+  async register(userData) {
+    try {
+      const response = await axios.post('/auth/register', {
+        name: userData.name,
+        email: userData.email,
+        institution: userData.institution,
+        password: userData.password
+      });
+
+      if (response.data.success) {
+        this.showNotification('Cuenta creada exitosamente', 'success');
+        this.hideModal('registerModal');
+        
+        // Auto-login after successful registration
+        await this.login(userData.email, userData.password);
+      } else {
+        this.showNotification(response.data.message || 'Error al crear la cuenta', 'error');
+      }
+    } catch (error) {
+      console.error('Register error:', error);
+      const message = error.response?.data?.message || 'Error al crear la cuenta';
+      this.showNotification(message, 'error');
     }
   },
 

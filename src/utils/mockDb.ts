@@ -9,6 +9,7 @@ const mockUsers: User[] = [
     email: 'admin@codecti.choco.gov.co',
     name: 'Administrador CODECTI',
     role: 'admin',
+    institution: 'CODECTI Chocó',
     created_at: '2025-01-01T00:00:00Z',
     is_active: true
   },
@@ -17,6 +18,7 @@ const mockUsers: User[] = [
     email: 'investigador1@codecti.choco.gov.co',
     name: 'María Elena Rodríguez',
     role: 'collaborator',
+    institution: 'Universidad Tecnológica del Chocó',
     created_at: '2025-01-01T00:00:00Z',
     is_active: true
   },
@@ -24,7 +26,8 @@ const mockUsers: User[] = [
     id: 3,
     email: 'investigador2@codecti.choco.gov.co',
     name: 'Carlos Alberto Mosquera',
-    role: 'collaborator',
+    role: 'researcher',
+    institution: 'SINCHI - Instituto Amazónico de Investigaciones Científicas',
     created_at: '2025-01-01T00:00:00Z',
     is_active: true
   }
@@ -88,6 +91,29 @@ export class MockDatabase {
 
   async getUserById(id: number): Promise<User | null> {
     return this.users.find(u => u.id === id && u.is_active) || null;
+  }
+
+  async createUser(data: {
+    name: string;
+    email: string;
+    institution: string;
+    password_hash: string;
+    role: 'admin' | 'collaborator' | 'researcher';
+  }): Promise<User> {
+    const now = new Date().toISOString();
+    
+    const user: User = {
+      id: this.nextUserId++,
+      email: data.email,
+      name: data.name,
+      institution: data.institution,
+      role: data.role,
+      created_at: now,
+      is_active: true
+    };
+    
+    this.users.push(user);
+    return user;
   }
 
   async getProjects(search: string = '', limit: number = 10, offset: number = 0): Promise<{ results: Project[], total: number }> {
