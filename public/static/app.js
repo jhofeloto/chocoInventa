@@ -70,6 +70,9 @@ const App = {
       case '/dashboard':
         this.renderDashboard();
         break;
+      case '/admin':
+        this.renderAdminDashboard();
+        break;
       default:
         if (this.currentPath.startsWith('/project/')) {
           const projectId = this.currentPath.split('/')[2];
@@ -231,6 +234,16 @@ const App = {
                 <i class="fas fa-user mr-1"></i>
                 ${this.user?.name || 'Usuario'}
               </span>
+              ${this.user?.role === 'admin' ? `
+                <a 
+                  href="/admin" 
+                  onclick="App.navigateToAdmin(); return false;"
+                  class="text-white hover:text-gray-200 text-sm"
+                >
+                  <i class="fas fa-cogs mr-1"></i>
+                  Admin
+                </a>
+              ` : ''}
               <button 
                 onclick="App.logout()" 
                 class="text-white hover:text-gray-200 text-sm"
@@ -708,6 +721,35 @@ const App = {
     window.history.pushState({}, '', '/dashboard');
     this.currentPath = '/dashboard';
     this.renderDashboard();
+  },
+
+  navigateToAdmin() {
+    if (this.user?.role !== 'admin') {
+      this.showNotification('Acceso denegado. Se requieren privilegios de administrador.', 'error');
+      return;
+    }
+    window.history.pushState({}, '', '/admin');
+    this.currentPath = '/admin';
+    this.renderAdminDashboard();
+  },
+
+  renderAdminDashboard() {
+    this.renderNavbar();
+    
+    // Load and initialize admin dashboard
+    if (typeof AdminDashboard !== 'undefined') {
+      AdminDashboard.init();
+    } else {
+      // Load admin dashboard script if not already loaded
+      const script = document.createElement('script');
+      script.src = '/static/admin-dashboard.js';
+      script.onload = () => {
+        if (typeof AdminDashboard !== 'undefined') {
+          AdminDashboard.init();
+        }
+      };
+      document.head.appendChild(script);
+    }
   },
 
   // Utility methods

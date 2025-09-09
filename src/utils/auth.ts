@@ -17,6 +17,40 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return passwordHash === hash;
 }
 
+// Base64 URL encoding helper functions
+function base64UrlEncode(str: string): string {
+  return btoa(str)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+
+function base64UrlDecode(str: string): string {
+  // Add padding back
+  str += '='.repeat((4 - str.length % 4) % 4);
+  // Replace URL-safe characters
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  return atob(str);
+}
+
+function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return base64UrlEncode(binary);
+}
+
+function base64UrlToArrayBuffer(base64Url: string): ArrayBuffer {
+  const binary = base64UrlDecode(base64Url);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
 // Simple JWT implementation for Cloudflare Workers
 export async function signJWT(payload: Omit<JWTPayload, 'exp' | 'iat'>, secret: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
@@ -31,8 +65,8 @@ export async function signJWT(payload: Omit<JWTPayload, 'exp' | 'iat'>, secret: 
     typ: 'JWT'
   };
 
-  const encodedHeader = btoa(JSON.stringify(header)).replace(/=/g, '');
-  const encodedPayload = btoa(JSON.stringify(fullPayload)).replace(/=/g, '');
+  const encodedHeader = base64UrlEncode(JSON.stringify(header));
+  const encodedPayload = base64UrlEncode(JSON.stringify(fullPayload));
   
   const signatureData = `${encodedHeader}.${encodedPayload}`;
   const encoder = new TextEncoder();
@@ -45,7 +79,7 @@ export async function signJWT(payload: Omit<JWTPayload, 'exp' | 'iat'>, secret: 
   );
   
   const signature = await crypto.subtle.sign('HMAC', secretKey, encoder.encode(signatureData));
-  const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/=/g, '');
+  const encodedSignature = arrayBufferToBase64Url(signature);
   
   return `${signatureData}.${encodedSignature}`;
 }
@@ -69,7 +103,7 @@ export async function verifyJWT(token: string, secret: string): Promise<JWTPaylo
       ['verify']
     );
 
-    const signature = Uint8Array.from(atob(signatureB64 + '=='), c => c.charCodeAt(0));
+    const signature = base64UrlToArrayBuffer(signatureB64);
     const isValid = await crypto.subtle.verify('HMAC', secretKey, signature, encoder.encode(signatureData));
     
     if (!isValid) {
@@ -77,7 +111,7 @@ export async function verifyJWT(token: string, secret: string): Promise<JWTPaylo
     }
 
     // Decode payload
-    const payload: JWTPayload = JSON.parse(atob(payloadB64 + '=='));
+    const payload: JWTPayload = JSON.parse(base64UrlDecode(payloadB64));
     
     // Check expiration
     const now = Math.floor(Date.now() / 1000);

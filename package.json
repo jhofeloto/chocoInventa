@@ -11,7 +11,7 @@
     "deploy:prod": "npm run build && wrangler pages deploy dist --project-name codecti-platform",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "clean-port": "fuser -k 3000/tcp 2>/dev/null || true",
-    "test": "curl http://localhost:3000",
+    "server:test": "curl http://localhost:3000",
     "db:migrate:local": "wrangler d1 migrations apply codecti-production --local",
     "db:migrate:prod": "wrangler d1 migrations apply codecti-production",
     "db:seed": "wrangler d1 execute codecti-production --local --file=./seed.sql",
@@ -21,18 +21,30 @@
     "git:init": "git init && git add . && git commit -m 'Initial commit'",
     "git:commit": "git add . && git commit -m",
     "git:status": "git status",
-    "git:log": "git log --oneline"
+    "git:log": "git log --oneline",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vitest run tests/e2e"
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20250909.0",
     "@hono/vite-cloudflare-pages": "^0.4.2",
     "hono": "^4.9.6",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "uuid": "^13.0.0",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@hono/vite-build": "^1.2.0",
     "@hono/vite-dev-server": "^0.18.2",
+    "@types/node": "^24.3.1",
+    "@vitest/ui": "^3.2.4",
     "vite": "^6.3.5",
+    "vitest": "^3.2.4",
     "wrangler": "^4.4.0"
   }
 }

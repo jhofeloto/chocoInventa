@@ -17,13 +17,15 @@ export function getFileExtension(contentType: string): string {
 }
 
 export function validateFileSize(size: number): boolean {
-  return size <= MAX_FILE_SIZE;
+  return size >= 0 && size <= MAX_FILE_SIZE;
 }
 
 export function generateFileName(originalName: string, projectId: number): string {
   const timestamp = Date.now();
-  const extension = originalName.split('.').pop() || '';
-  return `project_${projectId}_${timestamp}.${extension}`;
+  const random = Math.floor(Math.random() * 10000);
+  const parts = originalName.split('.');
+  const extension = parts.length > 1 ? parts.pop() || '' : '';
+  return `project_${projectId}_${timestamp}_${random}.${extension}`;
 }
 
 export function formatFileSize(bytes: number): string {
@@ -33,12 +35,14 @@ export function formatFileSize(bytes: number): string {
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  const value = bytes / Math.pow(k, i);
+  const formatted = value % 1 === 0 ? value.toString() : value.toFixed(1);
+  return formatted + ' ' + sizes[i];
 }
 
 export function sanitizeFileName(fileName: string): string {
   return fileName
-    .replace(/[^a-zA-Z0-9.-]/g, '_')
-    .replace(/_{2,}/g, '_')
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/[^a-z0-9.-]/g, '_')
+    .replace(/_{2,}/g, '_');
 }

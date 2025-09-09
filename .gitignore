@@ -31,3 +31,12 @@ lerna-debug.log*
 
 # misc
 .DS_Store
+
+# Test results
+test-results/
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+documento_prueba.pdf
