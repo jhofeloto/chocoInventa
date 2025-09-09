@@ -1,12 +1,54 @@
-import { jsxRenderer } from 'hono/jsx-renderer'
+import { jsxRenderer } from 'hono/jsx-renderer';
 
 export const renderer = jsxRenderer(({ children }) => {
   return (
-    <html>
+    <html lang="es">
       <head>
-        <link href="/static/style.css" rel="stylesheet" />
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Plataforma CTeI CODECTI</title>
+        <meta name="description" content="Sistema de información centralizado para proyectos de Ciencia, Tecnología e Innovación del Chocó" />
+        
+        {/* TailwindCSS CDN */}
+        <script src="https://cdn.tailwindcss.com"></script>
+        
+        {/* FontAwesome Icons */}
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+        
+        {/* Custom styles */}
+        <link href="/static/styles.css" rel="stylesheet" />
+        
+        {/* Configure Tailwind */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            tailwind.config = {
+              theme: {
+                extend: {
+                  colors: {
+                    codecti: {
+                      primary: '#2563eb',
+                      secondary: '#1e40af',
+                      accent: '#3b82f6',
+                      success: '#059669',
+                      warning: '#d97706',
+                      danger: '#dc2626'
+                    }
+                  }
+                }
+              }
+            }
+          `
+        }} />
       </head>
-      <body>{children}</body>
+      <body class="bg-gray-50 font-sans">
+        {children}
+        
+        {/* Axios for HTTP requests */}
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+        
+        {/* Main application JavaScript */}
+        <script src="/static/app.js"></script>
+      </body>
     </html>
-  )
-})
+  );
+});
