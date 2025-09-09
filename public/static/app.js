@@ -94,6 +94,13 @@ const App = {
       console.error('Global error:', e.error);
       this.showNotification('Ha ocurrido un error inesperado', 'error');
     });
+
+    // Handle escape key to close modals
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.hideAllModals();
+      }
+    });
   },
 
   // Authentication methods
@@ -196,121 +203,159 @@ const App = {
 
   // UI Rendering methods
   renderLandingPage() {
-    this.setupLandingPageEventListeners();
-    this.setupModalHandlers();
-    this.setupFloatingAnimations();
+    // Use setTimeout to ensure DOM is ready
+    setTimeout(() => {
+      this.setupLandingPageEventListeners();
+      this.setupModalHandlers();
+      this.setupFloatingAnimations();
+    }, 100);
   },
 
   setupLandingPageEventListeners() {
-    // CTA Buttons
-    const ctaButtons = document.querySelectorAll('#ctaRegister, #ctaRegisterMain');
-    ctaButtons.forEach(btn => {
-      btn?.addEventListener('click', () => this.showRegisterModal());
-    });
+    // Use event delegation for better reliability
+    document.body.addEventListener('click', (e) => {
+      // CTA Buttons
+      if (e.target.matches('#ctaRegister, #ctaRegisterMain')) {
+        e.preventDefault();
+        this.showRegisterModal();
+        return;
+      }
 
-    // Learn More button
-    const learnMoreBtn = document.getElementById('learnMore');
-    learnMoreBtn?.addEventListener('click', () => {
-      document.querySelector('.features-section').scrollIntoView({ behavior: 'smooth' });
-    });
+      // Learn More button
+      if (e.target.matches('#learnMore')) {
+        e.preventDefault();
+        const featuresSection = document.querySelector('.features-section');
+        if (featuresSection) {
+          featuresSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        return;
+      }
 
-    // Navigation buttons
-    const showLoginBtn = document.getElementById('showLoginModal');
-    const showRegisterBtn = document.getElementById('showRegisterModal');
-    
-    showLoginBtn?.addEventListener('click', () => this.showLoginModal());
-    showRegisterBtn?.addEventListener('click', () => this.showRegisterModal());
+      // Navigation buttons
+      if (e.target.matches('#showLoginModal')) {
+        e.preventDefault();
+        this.showLoginModal();
+        return;
+      }
+
+      if (e.target.matches('#showRegisterModal')) {
+        e.preventDefault();
+        this.showRegisterModal();
+        return;
+      }
+
+      // Modal close buttons
+      if (e.target.matches('#closeLoginModal')) {
+        e.preventDefault();
+        this.hideModal('loginModal');
+        return;
+      }
+
+      if (e.target.matches('#closeRegisterModal')) {
+        e.preventDefault();
+        this.hideModal('registerModal');
+        return;
+      }
+
+      // Switch between modals
+      if (e.target.matches('#switchToRegister')) {
+        e.preventDefault();
+        this.hideModal('loginModal');
+        setTimeout(() => this.showRegisterModal(), 150);
+        return;
+      }
+
+      if (e.target.matches('#switchToLogin')) {
+        e.preventDefault();
+        this.hideModal('registerModal');
+        setTimeout(() => this.showLoginModal(), 150);
+        return;
+      }
+
+      // Close modals when clicking outside
+      if (e.target.matches('#loginModal, #registerModal')) {
+        this.hideModal(e.target.id);
+        return;
+      }
+    });
   },
 
   setupModalHandlers() {
-    // Login Modal
-    const loginModal = document.getElementById('loginModal');
-    const closeLoginModal = document.getElementById('closeLoginModal');
-    const loginForm = document.getElementById('loginForm');
-    const switchToRegister = document.getElementById('switchToRegister');
-
-    closeLoginModal?.addEventListener('click', () => this.hideModal('loginModal'));
-    switchToRegister?.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.hideModal('loginModal');
-      this.showRegisterModal();
-    });
-
-    // Login form handler
-    loginForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
-      const password = document.getElementById('loginPassword').value;
-      
-      if (email && password) {
-        await this.login(email, password);
-      }
-    });
-
-    // Register Modal
-    const registerModal = document.getElementById('registerModal');
-    const closeRegisterModal = document.getElementById('closeRegisterModal');
-    const registerForm = document.getElementById('registerForm');
-    const switchToLogin = document.getElementById('switchToLogin');
-
-    closeRegisterModal?.addEventListener('click', () => this.hideModal('registerModal'));
-    switchToLogin?.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.hideModal('registerModal');
-      this.showLoginModal();
-    });
-
-    // Register form handler
-    registerForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = {
-        name: document.getElementById('registerName').value,
-        email: document.getElementById('registerEmail').value,
-        institution: document.getElementById('registerInstitution').value,
-        password: document.getElementById('registerPassword').value,
-        confirmPassword: document.getElementById('registerConfirmPassword').value
-      };
-      
-      if (this.validateRegisterForm(formData)) {
-        await this.register(formData);
-      }
-    });
-
-    // Close modals when clicking outside
-    [loginModal, registerModal].forEach(modal => {
-      modal?.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          this.hideModal(modal.id);
+    // Use event delegation for form submissions
+    document.body.addEventListener('submit', async (e) => {
+      // Login form handler
+      if (e.target.matches('#loginForm')) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail')?.value;
+        const password = document.getElementById('loginPassword')?.value;
+        
+        if (email && password) {
+          await this.login(email, password);
+        } else {
+          this.showNotification('Por favor completa todos los campos', 'error');
         }
-      });
+        return;
+      }
+
+      // Register form handler
+      if (e.target.matches('#registerForm')) {
+        e.preventDefault();
+        const formData = {
+          name: document.getElementById('registerName')?.value,
+          email: document.getElementById('registerEmail')?.value,
+          institution: document.getElementById('registerInstitution')?.value,
+          password: document.getElementById('registerPassword')?.value,
+          confirmPassword: document.getElementById('registerConfirmPassword')?.value
+        };
+        
+        if (this.validateRegisterForm(formData)) {
+          await this.register(formData);
+        }
+        return;
+      }
     });
   },
 
   setupFloatingAnimations() {
-    // Add floating animation to hero cards
+    // Add floating animation to hero cards using CSS animations instead of JS
     const floatingCards = document.querySelectorAll('.floating-card');
     floatingCards.forEach((card, index) => {
-      setInterval(() => {
-        const offset = Math.sin(Date.now() / 1000 + index) * 5;
-        card.style.transform = `translateY(${offset}px)`;
-      }, 16);
+      // The floating animations are now handled by CSS
+      // Just add a small random delay for variety
+      card.style.animationDelay = `${index * 0.5}s`;
     });
   },
 
   showLoginModal() {
-    const modal = document.getElementById('loginModal');
-    if (modal) {
-      modal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
+    this.hideAllModals();
+    setTimeout(() => {
+      const modal = document.getElementById('loginModal');
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        // Focus on first input
+        const firstInput = modal.querySelector('input[type="email"]');
+        if (firstInput) {
+          setTimeout(() => firstInput.focus(), 100);
+        }
+      }
+    }, 50);
   },
 
   showRegisterModal() {
-    const modal = document.getElementById('registerModal');
-    if (modal) {
-      modal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
+    this.hideAllModals();
+    setTimeout(() => {
+      const modal = document.getElementById('registerModal');
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        // Focus on first input
+        const firstInput = modal.querySelector('input[type="text"]');
+        if (firstInput) {
+          setTimeout(() => firstInput.focus(), 100);
+        }
+      }
+    }, 50);
   },
 
   hideModal(modalId) {
@@ -318,28 +363,64 @@ const App = {
     if (modal) {
       modal.classList.remove('active');
       document.body.style.overflow = '';
+      // Clear form data
+      const form = modal.querySelector('form');
+      if (form) {
+        form.reset();
+      }
     }
   },
 
+  hideAllModals() {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+      modal.classList.remove('active');
+    });
+    document.body.style.overflow = '';
+  },
+
   validateRegisterForm(data) {
-    if (!data.name || !data.email || !data.institution || !data.password) {
+    // Check for missing fields
+    if (!data.name || !data.email || !data.institution || !data.password || !data.confirmPassword) {
       this.showNotification('Por favor completa todos los campos', 'error');
       return false;
     }
 
-    if (data.password !== data.confirmPassword) {
-      this.showNotification('Las contraseñas no coinciden', 'error');
+    // Validate name length
+    if (data.name.length < 2) {
+      this.showNotification('El nombre debe tener al menos 2 caracteres', 'error');
       return false;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      this.showNotification('Por favor ingresa un email válido', 'error');
+      return false;
+    }
+
+    // Validate institution length
+    if (data.institution.length < 2) {
+      this.showNotification('El nombre de la institución debe tener al menos 2 caracteres', 'error');
+      return false;
+    }
+
+    // Validate password strength
     if (data.password.length < 6) {
       this.showNotification('La contraseña debe tener al menos 6 caracteres', 'error');
       return false;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email)) {
-      this.showNotification('Por favor ingresa un email válido', 'error');
+    // Check password confirmation
+    if (data.password !== data.confirmPassword) {
+      this.showNotification('Las contraseñas no coinciden', 'error');
+      return false;
+    }
+
+    // Check terms acceptance
+    const agreeTermsCheckbox = document.getElementById('agreeTerms');
+    if (!agreeTermsCheckbox || !agreeTermsCheckbox.checked) {
+      this.showNotification('Debes aceptar los términos y condiciones', 'error');
       return false;
     }
 
@@ -979,7 +1060,24 @@ const App = {
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM loaded, initializing app...');
   App.init();
+  
+  // Debug: Check if buttons exist after DOM is loaded
+  setTimeout(() => {
+    const buttons = [
+      'showLoginModal',
+      'showRegisterModal', 
+      'ctaRegister',
+      'ctaRegisterMain',
+      'learnMore'
+    ];
+    
+    buttons.forEach(id => {
+      const element = document.getElementById(id);
+      console.log(`Button ${id}:`, element ? 'Found' : 'Not found');
+    });
+  }, 500);
 });
 
 // Global error handler

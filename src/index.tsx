@@ -261,11 +261,11 @@ app.get('/', (c) => {
               <form id="loginForm">
                 <div className="form-group">
                   <label for="loginEmail">Correo Electrónico</label>
-                  <input type="email" id="loginEmail" className="form-input" placeholder="tu@email.com" required />
+                  <input type="email" id="loginEmail" className="form-input" placeholder="tu@email.com" autocomplete="email" required />
                 </div>
                 <div className="form-group">
                   <label for="loginPassword">Contraseña</label>
-                  <input type="password" id="loginPassword" className="form-input" placeholder="••••••••" required />
+                  <input type="password" id="loginPassword" className="form-input" placeholder="••••••••" autocomplete="current-password" required />
                 </div>
                 <button type="submit" className="btn btn-primary w-full">
                   Iniciar Sesión
@@ -291,23 +291,23 @@ app.get('/', (c) => {
               <form id="registerForm">
                 <div className="form-group">
                   <label for="registerName">Nombre Completo</label>
-                  <input type="text" id="registerName" className="form-input" placeholder="Tu nombre" required />
+                  <input type="text" id="registerName" className="form-input" placeholder="Tu nombre" autocomplete="name" required />
                 </div>
                 <div className="form-group">
                   <label for="registerEmail">Correo Electrónico</label>
-                  <input type="email" id="registerEmail" className="form-input" placeholder="tu@email.com" required />
+                  <input type="email" id="registerEmail" className="form-input" placeholder="tu@email.com" autocomplete="email" required />
                 </div>
                 <div className="form-group">
                   <label for="registerInstitution">Institución</label>
-                  <input type="text" id="registerInstitution" className="form-input" placeholder="Universidad o empresa" required />
+                  <input type="text" id="registerInstitution" className="form-input" placeholder="Universidad o empresa" autocomplete="organization" required />
                 </div>
                 <div className="form-group">
                   <label for="registerPassword">Contraseña</label>
-                  <input type="password" id="registerPassword" className="form-input" placeholder="••••••••" required />
+                  <input type="password" id="registerPassword" className="form-input" placeholder="••••••••" autocomplete="new-password" required />
                 </div>
                 <div className="form-group">
                   <label for="registerConfirmPassword">Confirmar Contraseña</label>
-                  <input type="password" id="registerConfirmPassword" className="form-input" placeholder="••••••••" required />
+                  <input type="password" id="registerConfirmPassword" className="form-input" placeholder="••••••••" autocomplete="new-password" required />
                 </div>
                 <div className="form-group">
                   <label className="checkbox-label">
