@@ -1,6 +1,6 @@
 import { jsxRenderer } from 'hono/jsx-renderer';
 
-export const renderer = jsxRenderer(({ children }) => {
+export const staticRenderer = jsxRenderer(({ children }) => {
   return (
     <html lang="es">
       <head>
@@ -43,14 +43,7 @@ export const renderer = jsxRenderer(({ children }) => {
       <body class="bg-gray-50 font-sans">
         {children}
         
-        {/* Axios for HTTP requests */}
-        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
-        
-        {/* Logo Manager */}
-        <script src="/static/logo-manager.js"></script>
-        
-        {/* Main application JavaScript */}
-        <script src="/static/app.js"></script>
+        {/* No JavaScript for static pages - they should work without SPA functionality */}
       </body>
     </html>
   );

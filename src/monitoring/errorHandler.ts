@@ -1,264 +1,194 @@
-// CODECTI Platform - Error Handler & Monitoring
+// CODECTI Platform - Error Handler
 
-import { Context } from 'hono';
-import { logger } from './logger';
-import type { Bindings } from '../types';
-
-export interface ErrorReport {
+interface ErrorEntry {
   id: string;
   timestamp: string;
-  error: {
-    name: string;
-    message: string;
-    stack?: string;
-  };
-  context: {
-    path: string;
-    method: string;
-    userId?: number;
-    userAgent?: string;
-    ip?: string;
-  };
+  message: string;
+  stack?: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
+  component: string;
+  userId?: string;
+  requestId?: string;
+  metadata?: any;
   resolved: boolean;
 }
 
-export class ErrorMonitor {
-  private errors: ErrorReport[] = [];
+class ErrorMonitor {
+  private errors: ErrorEntry[] = [];
   private maxErrors = 500;
 
-  // Clasificar severidad del error
-  private classifyError(error: Error, statusCode?: number): 'low' | 'medium' | 'high' | 'critical' {
-    if (statusCode && statusCode >= 500) return 'critical';
-    if (error.name === 'ValidationError') return 'medium';
-    if (error.name === 'UnauthorizedError') return 'low';
-    if (error.name === 'NotFoundError') return 'low';
-    if (error.message.includes('Database') || error.message.includes('Connection')) return 'critical';
-    if (error.message.includes('Auth') || error.message.includes('Token')) return 'medium';
-    
-    return 'medium';
-  }
+  logError(
+    error: Error | string, 
+    severity: ErrorEntry['severity'] = 'medium',
+    component: string = 'Unknown',
+    metadata?: any
+  ) {
+    const errorMessage = error instanceof Error ? error.message : error;
+    const stack = error instanceof Error ? error.stack : undefined;
 
-  // Reportar error
-  reportError(
-    error: Error,
-    context: {
-      path: string;
-      method: string;
-      userId?: number;
-      userAgent?: string;
-      ip?: string;
-    },
-    statusCode?: number
-  ): ErrorReport {
-    const errorReport: ErrorReport = {
-      id: crypto.randomUUID ? crypto.randomUUID() : `error-${Date.now()}-${Math.random()}`,
+    const entry: ErrorEntry = {
+      id: this.generateErrorId(),
       timestamp: new Date().toISOString(),
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      },
-      context,
-      severity: this.classifyError(error, statusCode),
-      resolved: false
+      message: errorMessage,
+      stack,
+      severity,
+      component,
+      metadata,
+      resolved: false,
+      requestId: this.generateRequestId()
     };
 
-    this.errors.unshift(errorReport);
+    this.errors.unshift(entry);
 
-    // Mantener solo los errores más recientes
+    // Keep only the most recent errors
     if (this.errors.length > this.maxErrors) {
       this.errors = this.errors.slice(0, this.maxErrors);
     }
 
-    // Log del error
-    logger.error(
-      `Error ${error.name}: ${error.message}`,
-      error,
-      'ERROR_MONITOR',
-      {
-        errorId: errorReport.id,
-        severity: errorReport.severity,
-        path: context.path,
-        method: context.method,
-        userId: context.userId
-      }
-    );
+    // Auto-escalate based on severity
+    if (severity === 'critical') {
+      console.error(`🔥 CRITICAL ERROR in ${component}:`, errorMessage, metadata);
+    } else if (severity === 'high') {
+      console.error(`🚨 HIGH SEVERITY ERROR in ${component}:`, errorMessage);
+    }
 
-    return errorReport;
+    return entry.id;
   }
 
-  // Obtener estadísticas de errores
-  getErrorStats(): {
-    total: number;
-    byType: Record<string, number>;
-    bySeverity: Record<string, number>;
-    last24h: number;
-    resolved: number;
-    unresolved: number;
-  } {
+  getErrors(options: {
+    severity?: string;
+    component?: string;
+    search?: string;
+    resolved?: boolean;
+    limit?: number;
+    offset?: number;
+  } = {}) {
+    let filteredErrors = [...this.errors];
+
+    // Filter by severity
+    if (options.severity) {
+      filteredErrors = filteredErrors.filter(error => error.severity === options.severity);
+    }
+
+    // Filter by component
+    if (options.component) {
+      filteredErrors = filteredErrors.filter(error => error.component === options.component);
+    }
+
+    // Filter by resolved status
+    if (options.resolved !== undefined) {
+      filteredErrors = filteredErrors.filter(error => error.resolved === options.resolved);
+    }
+
+    // Filter by search term
+    if (options.search) {
+      const searchTerm = options.search.toLowerCase();
+      filteredErrors = filteredErrors.filter(error =>
+        error.message.toLowerCase().includes(searchTerm) ||
+        error.component.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Apply pagination
+    const offset = options.offset || 0;
+    const limit = options.limit || 50;
+    
+    const stats = this.getErrorStats();
+    
+    return {
+      errors: filteredErrors.slice(offset, offset + limit),
+      total: filteredErrors.length,
+      stats
+    };
+  }
+
+  getErrorStats() {
     const now = new Date();
-    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const lastHour = new Date(now.getTime() - 60 * 60 * 1000);
+    const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    const last24hErrors = this.errors.filter(err => new Date(err.timestamp) > last24h);
+    const recentErrors = this.errors.filter(error => 
+      new Date(error.timestamp) > lastHour
+    );
+    
+    const dailyErrors = this.errors.filter(error => 
+      new Date(error.timestamp) > last24Hours
+    );
 
-    const byType = this.errors.reduce((acc, err) => {
-      acc[err.error.name] = (acc[err.error.name] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    const bySeverity = this.errors.reduce((acc, err) => {
-      acc[err.severity] = (acc[err.severity] || 0) + 1;
+    const severityCount = this.errors.reduce((acc, error) => {
+      acc[error.severity] = (acc[error.severity] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
     return {
       total: this.errors.length,
-      byType,
-      bySeverity,
-      last24h: last24hErrors.length,
-      resolved: this.errors.filter(err => err.resolved).length,
-      unresolved: this.errors.filter(err => !err.resolved).length
+      unresolved: this.errors.filter(e => !e.resolved).length,
+      lastHour: recentErrors.length,
+      last24Hours: dailyErrors.length,
+      bySeverity: severityCount
     };
   }
 
-  // Obtener errores con filtros
-  getErrors(filters?: {
-    severity?: string;
-    resolved?: boolean;
-    limit?: number;
-    search?: string;
-  }): ErrorReport[] {
-    let filtered = [...this.errors];
-
-    if (filters?.severity) {
-      filtered = filtered.filter(err => err.severity === filters.severity);
-    }
-
-    if (filters?.resolved !== undefined) {
-      filtered = filtered.filter(err => err.resolved === filters.resolved);
-    }
-
-    if (filters?.search) {
-      const search = filters.search.toLowerCase();
-      filtered = filtered.filter(err => 
-        err.error.name.toLowerCase().includes(search) ||
-        err.error.message.toLowerCase().includes(search) ||
-        err.context.path.toLowerCase().includes(search)
-      );
-    }
-
-    const limit = filters?.limit || 50;
-    return filtered.slice(0, limit);
-  }
-
-  // Marcar error como resuelto
-  resolveError(errorId: string): boolean {
-    const error = this.errors.find(err => err.id === errorId);
+  resolveError(errorId: string, userId?: string) {
+    const error = this.errors.find(e => e.id === errorId);
     if (error) {
       error.resolved = true;
-      logger.info(`Error ${errorId} marked as resolved`, 'ERROR_MONITOR');
+      error.metadata = {
+        ...error.metadata,
+        resolvedBy: userId,
+        resolvedAt: new Date().toISOString()
+      };
       return true;
     }
     return false;
   }
 
-  // Obtener errores críticos no resueltos
-  getCriticalErrors(): ErrorReport[] {
-    return this.errors.filter(err => 
-      err.severity === 'critical' && !err.resolved
-    ).slice(0, 10);
+  clearErrors(severity?: ErrorEntry['severity']) {
+    if (severity) {
+      this.errors = this.errors.filter(error => error.severity !== severity);
+    } else {
+      this.errors = [];
+    }
   }
 
-  // Limpiar errores antiguos
-  clearOldErrors(olderThanDays = 7): void {
-    const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
-    const initialLength = this.errors.length;
-    this.errors = this.errors.filter(err => new Date(err.timestamp) > cutoff);
-    
-    const removed = initialLength - this.errors.length;
-    if (removed > 0) {
-      logger.info(`Cleaned ${removed} old errors older than ${olderThanDays} days`, 'ERROR_MONITOR');
-    }
+  private generateErrorId(): string {
+    return 'err_' + Math.random().toString(36).substring(2, 15);
+  }
+
+  private generateRequestId(): string {
+    return Math.random().toString(36).substring(2, 15);
   }
 }
 
-// Instancia singleton del monitor de errores
 export const errorMonitor = new ErrorMonitor();
 
-// Middleware de manejo de errores para Hono
+// Middleware function for Hono
 export const errorHandlerMiddleware = () => {
-  return async (c: Context<{ Bindings: Bindings }>, next: any) => {
+  return async (c: any, next: any) => {
     try {
       await next();
     } catch (error) {
-      const err = error as Error;
-      const user = c.get('user');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const stack = error instanceof Error ? error.stack : undefined;
       
-      // Reportar el error
-      const errorReport = errorMonitor.reportError(err, {
-        path: c.req.path,
-        method: c.req.method,
-        userId: user?.userId,
-        userAgent: c.req.header('User-Agent'),
-        ip: c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For')
-      });
-
-      // Determinar código de estado HTTP
-      let statusCode = 500;
-      if (err.name === 'ValidationError') statusCode = 400;
-      if (err.name === 'UnauthorizedError') statusCode = 401;
-      if (err.name === 'ForbiddenError') statusCode = 403;
-      if (err.name === 'NotFoundError') statusCode = 404;
-
-      // Respuesta de error estructurada
+      // Log the error
+      errorMonitor.logError(
+        error,
+        'high',
+        'Middleware',
+        {
+          path: c.req.path,
+          method: c.req.method,
+          userAgent: c.req.header('User-Agent')
+        }
+      );
+      
+      // Return error response
       return c.json({
         success: false,
-        error: {
-          id: errorReport.id,
-          message: process.env.NODE_ENV === 'production' 
-            ? 'Se ha producido un error interno del servidor'
-            : err.message,
-          type: err.name
-        },
-        timestamp: new Date().toISOString()
-      }, statusCode);
+        message: 'Error interno del servidor',
+        error: errorMessage
+      }, 500);
     }
   };
 };
-
-// Clases de errores personalizadas
-export class ValidationError extends Error {
-  constructor(message: string, public field?: string) {
-    super(message);
-    this.name = 'ValidationError';
-  }
-}
-
-export class UnauthorizedError extends Error {
-  constructor(message: string = 'No autorizado') {
-    super(message);
-    this.name = 'UnauthorizedError';
-  }
-}
-
-export class ForbiddenError extends Error {
-  constructor(message: string = 'Acceso denegado') {
-    super(message);
-    this.name = 'ForbiddenError';
-  }
-}
-
-export class NotFoundError extends Error {
-  constructor(message: string = 'Recurso no encontrado') {
-    super(message);
-    this.name = 'NotFoundError';
-  }
-}
-
-export class DatabaseError extends Error {
-  constructor(message: string, public operation?: string) {
-    super(message);
-    this.name = 'DatabaseError';
-  }
-}

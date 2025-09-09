@@ -76,6 +76,8 @@ const mockPasswordHash = 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f38
 export class MockDatabase {
   users: User[] = [...mockUsers];
   projects: Project[] = [...mockProjects];
+  // Store password hashes separately for dynamic users
+  passwordHashes: Map<string, string> = new Map();
   nextUserId = 4;
   nextProjectId = 4;
 
@@ -83,9 +85,12 @@ export class MockDatabase {
     const user = this.users.find(u => u.email === email && u.is_active);
     if (!user) return null;
     
+    // Check if we have a stored password hash for this email
+    const storedPasswordHash = this.passwordHashes.get(email);
+    
     return {
       ...user,
-      password_hash: mockPasswordHash
+      password_hash: storedPasswordHash || mockPasswordHash // Use stored hash or fallback to mock
     };
   }
 
@@ -112,13 +117,17 @@ export class MockDatabase {
       is_active: true
     };
     
+    // Store the password hash for this email
+    this.passwordHashes.set(data.email, data.password_hash);
+    
     this.users.push(user);
     return user;
   }
 
-  async getProjects(search: string = '', limit: number = 10, offset: number = 0): Promise<{ results: Project[], total: number }> {
+  async getProjects(search: string = '', status: string = '', sort: string = 'created_at', limit: number = 10, offset: number = 0): Promise<{ results: Project[], total: number }> {
     let filtered = [...this.projects];
     
+    // Apply search filter
     if (search) {
       const searchLower = search.toLowerCase();
       filtered = filtered.filter(p => 
@@ -128,10 +137,26 @@ export class MockDatabase {
       );
     }
     
+    // Apply status filter
+    if (status && ['active', 'completed'].includes(status)) {
+      filtered = filtered.filter(p => p.status === status);
+    }
+    
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sort) {
+        case 'title':
+          return a.title.localeCompare(b.title);
+        case 'responsible_person':
+          return a.responsible_person.localeCompare(b.responsible_person);
+        case 'created_at':
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+    
     const total = filtered.length;
-    const results = filtered
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(offset, offset + limit);
+    const results = filtered.slice(offset, offset + limit);
     
     return { results, total };
   }
@@ -178,7 +203,81 @@ export class MockDatabase {
     
     return true;
   }
+
+  // User management methods
+  async getUsers(search: string = '', role: string = '', status: string = '', limit: number = 20, offset: number = 0): Promise<{ results: User[], total: number }> {
+    let filtered = [...this.users];
+    
+    // Apply search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filtered = filtered.filter(u => 
+        u.name.toLowerCase().includes(searchLower) ||
+        u.email.toLowerCase().includes(searchLower) ||
+        (u.institution && u.institution.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Apply role filter
+    if (role && ['admin', 'collaborator', 'researcher'].includes(role)) {
+      filtered = filtered.filter(u => u.role === role);
+    }
+    
+    // Apply status filter
+    if (status) {
+      if (status === 'active') {
+        filtered = filtered.filter(u => u.is_active);
+      } else if (status === 'inactive') {
+        filtered = filtered.filter(u => !u.is_active);
+      }
+    }
+    
+    const total = filtered.length;
+    const results = filtered
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(offset, offset + limit);
+    
+    return { results, total };
+  }
+
+  async updateUser(id: number, updates: any): Promise<boolean> {
+    const index = this.users.findIndex(u => u.id === id);
+    if (index === -1) return false;
+    
+    this.users[index] = {
+      ...this.users[index],
+      ...updates
+    };
+    
+    // Update password hash if provided
+    if (updates.password_hash) {
+      this.passwordHashes.set(this.users[index].email, updates.password_hash);
+    }
+    
+    return true;
+  }
+
+  async resetUserPassword(id: number, passwordHash: string): Promise<boolean> {
+    const user = this.users.find(u => u.id === id);
+    if (!user) return false;
+    
+    this.passwordHashes.set(user.email, passwordHash);
+    return true;
+  }
+
+  async deactivateUser(id: number): Promise<boolean> {
+    const index = this.users.findIndex(u => u.id === id);
+    if (index === -1) return false;
+    
+    this.users[index].is_active = false;
+    return true;
+  }
 }
 
 // Singleton instance
 export const mockDb = new MockDatabase();
+
+// Initialize password hashes for existing mock users
+mockDb.passwordHashes.set('admin@codecti.choco.gov.co', mockPasswordHash);
+mockDb.passwordHashes.set('investigador1@codecti.choco.gov.co', mockPasswordHash);
+mockDb.passwordHashes.set('investigador2@codecti.choco.gov.co', mockPasswordHash);

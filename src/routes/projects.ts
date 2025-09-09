@@ -10,10 +10,12 @@ const projects = new Hono<{ Bindings: Bindings }>();
 // Apply authentication middleware to all routes
 projects.use('/*', authMiddleware);
 
-// Get all projects with search functionality (HU-04)
+// Get all projects with search, filter and sort functionality (HU-04)
 projects.get('/', async (c) => {
   try {
     const search = c.req.query('search') || '';
+    const status = c.req.query('status') || '';
+    const sort = c.req.query('sort') || 'created_at';
     const page = parseInt(c.req.query('page') || '1');
     const limit = parseInt(c.req.query('limit') || '10');
     const offset = (page - 1) * limit;
@@ -25,15 +27,42 @@ projects.get('/', async (c) => {
     `;
     let countQuery = 'SELECT COUNT(*) as total FROM projects';
     const params: any[] = [];
+    const conditions: string[] = [];
 
+    // Add search condition
     if (search) {
-      const searchCondition = ' WHERE p.title LIKE ? OR p.responsible_person LIKE ? OR p.summary LIKE ?';
-      query += searchCondition + ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
-      countQuery += searchCondition;
+      conditions.push('(p.title LIKE ? OR p.responsible_person LIKE ? OR p.summary LIKE ?)');
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-    } else {
-      query += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
     }
+
+    // Add status filter
+    if (status && ['active', 'completed'].includes(status)) {
+      conditions.push('p.status = ?');
+      params.push(status);
+    }
+
+    // Add WHERE clause if there are conditions
+    if (conditions.length > 0) {
+      const whereClause = ' WHERE ' + conditions.join(' AND ');
+      query += whereClause;
+      countQuery += whereClause;
+    }
+
+    // Add ORDER BY clause
+    let orderBy = ' ORDER BY ';
+    switch (sort) {
+      case 'title':
+        orderBy += 'p.title ASC';
+        break;
+      case 'responsible_person':
+        orderBy += 'p.responsible_person ASC';
+        break;
+      case 'created_at':
+      default:
+        orderBy += 'p.created_at DESC';
+        break;
+    }
+    query += orderBy + ' LIMIT ? OFFSET ?';
 
     // Get projects
     let projectsResult: any;
@@ -50,7 +79,7 @@ projects.get('/', async (c) => {
     } else {
       // Use mock database for development
       const { mockDb } = await import('../utils/mockDb');
-      const result = await mockDb.getProjects(search, limit, offset);
+      const result = await mockDb.getProjects(search, status, sort, limit, offset);
       projectsResult = { results: result.results };
       countResult = { total: result.total };
     }

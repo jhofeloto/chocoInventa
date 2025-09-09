@@ -4,11 +4,36 @@ const AdminDashboard = {
   refreshInterval: null,
   refreshRate: 30000, // 30 seconds
   
+  // Helper function to make authenticated requests
+  async makeAuthenticatedRequest(method, url, data = null, options = {}) {
+    const token = App.token || localStorage.getItem('codecti_token');
+    if (!token) {
+      throw new Error('No hay token de autenticación');
+    }
+
+    const config = {
+      method,
+      url,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        ...options.headers
+      },
+      ...options
+    };
+
+    if (data) {
+      config.data = data;
+    }
+
+    return await axios(config);
+  },
+  
   init() {
     this.loadSystemStatus();
     this.loadMetrics();
     this.loadRecentLogs();
     this.loadRecentErrors();
+    this.loadUsers();
     this.startAutoRefresh();
     this.setupEventListeners();
   },
@@ -48,6 +73,15 @@ const AdminDashboard = {
       this.generateTestLoad();
     });
 
+    // Configure logo
+    document.getElementById('configureLogoButton')?.addEventListener('click', () => {
+      if (typeof LogoManager !== 'undefined') {
+        LogoManager.showLogoConfigModal();
+      } else {
+        App.showNotification('LogoManager no está disponible', 'error');
+      }
+    });
+
     // Force health check
     document.getElementById('forceHealthCheck')?.addEventListener('click', () => {
       this.forceHealthCheck();
@@ -79,7 +113,7 @@ const AdminDashboard = {
 
   async loadSystemStatus() {
     try {
-      const response = await axios.get('/api/monitoring/admin/status');
+      const response = await this.makeAuthenticatedRequest('GET', '/api/monitoring/admin/status');
       if (response.data.success) {
         this.renderSystemStatus(response.data.data);
       }
@@ -91,7 +125,7 @@ const AdminDashboard = {
 
   async loadMetrics() {
     try {
-      const response = await axios.get('/api/monitoring/admin/metrics');
+      const response = await this.makeAuthenticatedRequest('GET', '/api/monitoring/admin/metrics');
       if (response.data.success) {
         this.renderMetrics(response.data.data);
       }
@@ -111,7 +145,7 @@ const AdminDashboard = {
       if (search) params.append('search', search);
       params.append('limit', '20');
       
-      const response = await axios.get(`/api/monitoring/admin/logs?${params}`);
+      const response = await this.makeAuthenticatedRequest('GET', `/api/monitoring/admin/logs?${params}`);
       if (response.data.success) {
         this.renderLogs(response.data.data.logs);
       }
@@ -131,7 +165,7 @@ const AdminDashboard = {
       if (search) params.append('search', search);
       params.append('limit', '20');
       
-      const response = await axios.get(`/api/monitoring/admin/errors?${params}`);
+      const response = await this.makeAuthenticatedRequest('GET', `/api/monitoring/admin/errors?${params}`);
       if (response.data.success) {
         this.renderErrors(response.data.data.errors, response.data.data.stats);
       }
@@ -532,5 +566,506 @@ const AdminDashboard = {
       clearTimeout(timeout);
       timeout = setTimeout(later, wait);
     };
+  },
+
+  // User Management Functions
+  async loadUsers() {
+    try {
+      const search = document.getElementById('userSearch')?.value || '';
+      const role = document.getElementById('roleFilter')?.value || '';
+      const status = document.getElementById('statusFilter')?.value || '';
+      
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (role) params.append('role', role);
+      if (status) params.append('status', status);
+      
+      const response = await this.makeAuthenticatedRequest('GET', `/api/users?${params}`);
+      if (response.data.success) {
+        this.renderUsers(response.data.users, response.data.total);
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+      App.showNotification('Error al cargar usuarios', 'error');
+    }
+  },
+
+  renderUsers(users, total) {
+    const container = document.getElementById('usersContainer');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="card p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-semibold">
+            Gestión de Usuarios 
+            <span class="text-sm font-normal text-gray-500">(${total} usuarios)</span>
+          </h2>
+          <button onclick="AdminDashboard.showCreateUserModal()" class="btn btn-primary">
+            <i class="fas fa-plus mr-2"></i>
+            Crear Usuario
+          </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div>
+            <label class="form-label">Buscar</label>
+            <input 
+              type="text" 
+              id="userSearch" 
+              placeholder="Nombre, email o institución..." 
+              class="form-input"
+            >
+          </div>
+          <div>
+            <label class="form-label">Rol</label>
+            <select id="roleFilter" class="form-input">
+              <option value="">Todos los roles</option>
+              <option value="admin">Administrador</option>
+              <option value="collaborator">Colaborador</option>
+              <option value="researcher">Investigador</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Estado</label>
+            <select id="statusFilter" class="form-input">
+              <option value="">Todos los estados</option>
+              <option value="active">Activo</option>
+              <option value="inactive">Inactivo</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Usuario
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Rol
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Estado
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Creado
+                </th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              ${users.length === 0 ? `
+                <tr>
+                  <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                    No se encontraron usuarios
+                  </td>
+                </tr>
+              ` : users.map(user => `
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <i class="fas fa-user text-gray-500"></i>
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">${this.escapeHtml(user.name)}</div>
+                        <div class="text-sm text-gray-500">${this.escapeHtml(user.email)}</div>
+                        <div class="text-xs text-gray-400">${this.escapeHtml(user.institution || 'Sin institución')}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      user.role === 'admin' ? 'bg-red-100 text-red-800' :
+                      user.role === 'collaborator' ? 'bg-blue-100 text-blue-800' :
+                      'bg-green-100 text-green-800'
+                    }">
+                      ${
+                        user.role === 'admin' ? 'Administrador' :
+                        user.role === 'collaborator' ? 'Colaborador' :
+                        'Investigador'
+                      }
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }">
+                      ${user.is_active ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${new Date(user.created_at).toLocaleDateString()}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div class="flex justify-end space-x-2">
+                      <button 
+                        onclick="AdminDashboard.showEditUserModal(${user.id})" 
+                        class="text-blue-600 hover:text-blue-800"
+                        title="Editar usuario"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button 
+                        onclick="AdminDashboard.showResetPasswordModal(${user.id})" 
+                        class="text-yellow-600 hover:text-yellow-800"
+                        title="Restablecer contraseña"
+                      >
+                        <i class="fas fa-key"></i>
+                      </button>
+                      ${user.is_active ? `
+                        <button 
+                          onclick="AdminDashboard.confirmDeactivateUser(${user.id})" 
+                          class="text-red-600 hover:text-red-800"
+                          title="Desactivar usuario"
+                        >
+                          <i class="fas fa-ban"></i>
+                        </button>
+                      ` : `
+                        <button 
+                          onclick="AdminDashboard.activateUser(${user.id})" 
+                          class="text-green-600 hover:text-green-800"
+                          title="Activar usuario"
+                        >
+                          <i class="fas fa-check"></i>
+                        </button>
+                      `}
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    // Setup filter event listeners
+    document.getElementById('userSearch')?.addEventListener('input', 
+      this.debounce(() => this.loadUsers(), 500)
+    );
+    document.getElementById('roleFilter')?.addEventListener('change', () => this.loadUsers());
+    document.getElementById('statusFilter')?.addEventListener('change', () => this.loadUsers());
+  },
+
+  showCreateUserModal() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <h2 class="text-xl font-bold mb-4">Crear Nuevo Usuario</h2>
+        <form id="createUserForm">
+          <div class="space-y-4">
+            <div>
+              <label class="form-label">Nombre Completo *</label>
+              <input type="text" id="createName" class="form-input" required>
+            </div>
+            <div>
+              <label class="form-label">Correo Electrónico *</label>
+              <input type="email" id="createEmail" class="form-input" required>
+            </div>
+            <div>
+              <label class="form-label">Institución *</label>
+              <input type="text" id="createInstitution" class="form-input" required>
+            </div>
+            <div>
+              <label class="form-label">Contraseña *</label>
+              <input type="password" id="createPassword" class="form-input" required minlength="6">
+            </div>
+            <div>
+              <label class="form-label">Confirmar Contraseña *</label>
+              <input type="password" id="createConfirmPassword" class="form-input" required minlength="6">
+            </div>
+            <div>
+              <label class="form-label">Rol *</label>
+              <select id="createRole" class="form-input" required>
+                <option value="">Seleccionar rol</option>
+                <option value="researcher">Investigador</option>
+                <option value="collaborator">Colaborador</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-end space-x-3 mt-6">
+            <button type="button" onclick="this.closest('.fixed').remove()" class="btn btn-secondary">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Crear Usuario
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('createUserForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.createUser();
+    });
+  },
+
+  async createUser() {
+    try {
+      const name = document.getElementById('createName').value;
+      const email = document.getElementById('createEmail').value;
+      const institution = document.getElementById('createInstitution').value;
+      const password = document.getElementById('createPassword').value;
+      const confirmPassword = document.getElementById('createConfirmPassword').value;
+      const role = document.getElementById('createRole').value;
+
+      if (password !== confirmPassword) {
+        App.showNotification('Las contraseñas no coinciden', 'error');
+        return;
+      }
+
+      const response = await axios.post('/api/users', {
+        name,
+        email,
+        institution,
+        password,
+        role
+      });
+
+      if (response.data.success) {
+        App.showNotification('Usuario creado exitosamente', 'success');
+        document.querySelector('.fixed').remove();
+        this.loadUsers();
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      App.showNotification(
+        error.response?.data?.message || 'Error al crear usuario',
+        'error'
+      );
+    }
+  },
+
+  async showEditUserModal(userId) {
+    try {
+      const response = await axios.get(`/api/users/${userId}`);
+      if (!response.data.success) {
+        App.showNotification('Error al cargar datos del usuario', 'error');
+        return;
+      }
+
+      const user = response.data.user;
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+          <h2 class="text-xl font-bold mb-4">Editar Usuario</h2>
+          <form id="editUserForm">
+            <div class="space-y-4">
+              <div>
+                <label class="form-label">Nombre Completo *</label>
+                <input type="text" id="editName" class="form-input" value="${this.escapeHtml(user.name)}" required>
+              </div>
+              <div>
+                <label class="form-label">Correo Electrónico *</label>
+                <input type="email" id="editEmail" class="form-input" value="${this.escapeHtml(user.email)}" required>
+              </div>
+              <div>
+                <label class="form-label">Institución *</label>
+                <input type="text" id="editInstitution" class="form-input" value="${this.escapeHtml(user.institution || '')}" required>
+              </div>
+              <div>
+                <label class="form-label">Rol *</label>
+                <select id="editRole" class="form-input" required>
+                  <option value="researcher" ${user.role === 'researcher' ? 'selected' : ''}>Investigador</option>
+                  <option value="collaborator" ${user.role === 'collaborator' ? 'selected' : ''}>Colaborador</option>
+                  <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrador</option>
+                </select>
+              </div>
+              <div>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="editIsActive" ${user.is_active ? 'checked' : ''}>
+                  <span class="checkbox-text">Usuario activo</span>
+                </label>
+              </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+              <button type="button" onclick="this.closest('.fixed').remove()" class="btn btn-secondary">
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn-primary">
+                Guardar Cambios
+              </button>
+            </div>
+          </form>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      document.getElementById('editUserForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.updateUser(userId);
+      });
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      App.showNotification('Error al cargar datos del usuario', 'error');
+    }
+  },
+
+  async updateUser(userId) {
+    try {
+      const name = document.getElementById('editName').value;
+      const email = document.getElementById('editEmail').value;
+      const institution = document.getElementById('editInstitution').value;
+      const role = document.getElementById('editRole').value;
+      const is_active = document.getElementById('editIsActive').checked;
+
+      const response = await axios.put(`/api/users/${userId}`, {
+        name,
+        email,
+        institution,
+        role,
+        is_active
+      });
+
+      if (response.data.success) {
+        App.showNotification('Usuario actualizado exitosamente', 'success');
+        document.querySelector('.fixed').remove();
+        this.loadUsers();
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      App.showNotification(
+        error.response?.data?.message || 'Error al actualizar usuario',
+        'error'
+      );
+    }
+  },
+
+  showResetPasswordModal(userId) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h2 class="text-xl font-bold mb-4">Restablecer Contraseña</h2>
+        <form id="resetPasswordForm">
+          <div class="space-y-4">
+            <div>
+              <label class="form-label">Nueva Contraseña *</label>
+              <input type="password" id="newPassword" class="form-input" required minlength="6">
+            </div>
+            <div>
+              <label class="form-label">Confirmar Nueva Contraseña *</label>
+              <input type="password" id="confirmNewPassword" class="form-input" required minlength="6">
+            </div>
+          </div>
+          <div class="flex justify-end space-x-3 mt-6">
+            <button type="button" onclick="this.closest('.fixed').remove()" class="btn btn-secondary">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Restablecer Contraseña
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('resetPasswordForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.resetUserPassword(userId);
+    });
+  },
+
+  async resetUserPassword(userId) {
+    try {
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+      if (newPassword !== confirmNewPassword) {
+        App.showNotification('Las contraseñas no coinciden', 'error');
+        return;
+      }
+
+      const response = await axios.post(`/api/users/${userId}/reset-password`, {
+        new_password: newPassword
+      });
+
+      if (response.data.success) {
+        App.showNotification('Contraseña restablecida exitosamente', 'success');
+        document.querySelector('.fixed').remove();
+      }
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      App.showNotification(
+        error.response?.data?.message || 'Error al restablecer contraseña',
+        'error'
+      );
+    }
+  },
+
+  confirmDeactivateUser(userId) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h2 class="text-xl font-bold mb-4">Confirmar Desactivación</h2>
+        <p class="text-gray-600 mb-4">
+          ¿Estás seguro de que deseas desactivar este usuario? 
+          El usuario no podrá iniciar sesión hasta que sea reactivado.
+        </p>
+        <div class="flex justify-end space-x-3">
+          <button onclick="this.closest('.fixed').remove()" class="btn btn-secondary">
+            Cancelar
+          </button>
+          <button onclick="AdminDashboard.deactivateUser(${userId}); this.closest('.fixed').remove()" class="btn btn-danger">
+            Desactivar Usuario
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  },
+
+  async deactivateUser(userId) {
+    try {
+      const response = await axios.delete(`/api/users/${userId}`);
+      if (response.data.success) {
+        App.showNotification('Usuario desactivado exitosamente', 'success');
+        this.loadUsers();
+      }
+    } catch (error) {
+      console.error('Error deactivating user:', error);
+      App.showNotification(
+        error.response?.data?.message || 'Error al desactivar usuario',
+        'error'
+      );
+    }
+  },
+
+  async activateUser(userId) {
+    try {
+      // Activate user by updating is_active to true
+      const response = await axios.put(`/api/users/${userId}`, {
+        is_active: true
+      });
+      if (response.data.success) {
+        App.showNotification('Usuario activado exitosamente', 'success');
+        this.loadUsers();
+      }
+    } catch (error) {
+      console.error('Error activating user:', error);
+      App.showNotification('Error al activar usuario', 'error');
+    }
+  },
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 };

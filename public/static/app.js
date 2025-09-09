@@ -8,11 +8,14 @@ const App = {
   projects: [],
   
   // Initialize the application
-  init() {
+  async init() {
     this.setupAxiosDefaults();
-    this.checkAuthentication();
+    await this.checkAuthentication();
     this.setupEventListeners();
     this.routeHandler();
+    
+    // Initialize logos after everything else is set up
+    await this.initializeLogos();
   },
 
   // Setup Axios defaults
@@ -38,10 +41,17 @@ const App = {
 
   // Check if user is authenticated
   async checkAuthentication() {
+    // Define public routes that don't require authentication
+    const publicRoutes = ['/', '/docs', '/soporte'];
+    
     if (!this.token) {
-      if (this.currentPath !== '/') {
+      // Only redirect to home if trying to access protected pages
+      if (!publicRoutes.includes(this.currentPath)) {
         window.location.href = '/';
+        return;
       }
+      // Update landing page navigation for non-authenticated users
+      this.updateLandingNavigation(false);
       return;
     }
 
@@ -49,8 +59,11 @@ const App = {
       const response = await axios.post('/auth/verify');
       if (response.data.success) {
         this.user = response.data.user;
-        if (this.currentPath === '/') {
-          window.location.href = '/dashboard';
+        // Update landing page navigation for authenticated users
+        this.updateLandingNavigation(true);
+        // Only auto-redirect if user explicitly tries to access protected pages
+        if (this.currentPath !== '/' && this.currentPath !== '/dashboard' && this.currentPath !== '/admin') {
+          // Let them stay on landing page if they want
         }
       } else {
         this.logout();
@@ -59,6 +72,44 @@ const App = {
       console.error('Auth check failed:', error);
       this.logout();
     }
+  },
+
+  // Update landing page navigation based on authentication state
+  updateLandingNavigation(isAuthenticated) {
+    const navActions = document.getElementById('landingNavActions');
+    if (!navActions) return; // Not on landing page
+    
+    if (isAuthenticated) {
+      navActions.innerHTML = `
+        <a href="/dashboard" class="btn btn-outline">
+          <i class="fas fa-tachometer-alt mr-2"></i>
+          Dashboard
+        </a>
+        <button id="landingLogout" class="btn btn-secondary">
+          <i class="fas fa-sign-out-alt mr-2"></i>
+          Cerrar Sesión
+        </button>
+      `;
+    } else {
+      navActions.innerHTML = `
+        <button id="showLoginModal" class="btn btn-outline">
+          Iniciar Sesión
+        </button>
+        <button id="showRegisterModal" class="btn btn-primary">
+          Registrarse
+        </button>
+      `;
+    }
+  },
+
+  // Setup navigation for public pages like /docs and /soporte
+  setupPublicPageNavigation() {
+    // These pages are server-rendered and should work independently
+    // Just ensure any dynamic navigation elements work if present
+    console.log('Setting up public page navigation for:', this.currentPath);
+    
+    // If there are any authentication-dependent elements on these pages,
+    // we can handle them here in the future
   },
 
   // Handle routing based on current path
@@ -72,6 +123,12 @@ const App = {
         break;
       case '/admin':
         this.renderAdminDashboard();
+        break;
+      case '/docs':
+      case '/soporte':
+        // These are server-rendered pages, don't interfere with them
+        // Just setup basic navigation if needed
+        this.setupPublicPageNavigation();
         break;
       default:
         if (this.currentPath.startsWith('/project/')) {
@@ -101,6 +158,17 @@ const App = {
         this.hideAllModals();
       }
     });
+
+    // Handle project detail buttons with event delegation
+    document.addEventListener('click', (e) => {
+      if (e.target.matches('.project-detail-btn') || e.target.closest('.project-detail-btn')) {
+        const button = e.target.matches('.project-detail-btn') ? e.target : e.target.closest('.project-detail-btn');
+        const projectId = button.getAttribute('data-project-id');
+        if (projectId) {
+          this.navigateToProject(parseInt(projectId));
+        }
+      }
+    });
   },
 
   // Authentication methods
@@ -115,7 +183,12 @@ const App = {
         axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
         
         this.showNotification('Inicio de sesión exitoso', 'success');
-        window.location.href = '/dashboard';
+        
+        // Use full page redirect when navigating from landing to dashboard
+        // because they have different DOM structures
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 500);
       } else {
         this.showNotification(response.data.message || 'Error de autenticación', 'error');
       }
@@ -130,7 +203,14 @@ const App = {
     this.token = null;
     localStorage.removeItem('codecti_token');
     delete axios.defaults.headers.common['Authorization'];
-    window.location.href = '/';
+    
+    // If already on landing page, just update navigation
+    if (this.currentPath === '/') {
+      this.updateLandingNavigation(false);
+      this.showNotification('Sesión cerrada correctamente', 'success');
+    } else {
+      window.location.href = '/';
+    }
   },
 
   // Projects methods
@@ -337,6 +417,8 @@ const App = {
       this.setupLandingPageEventListeners();
       this.setupModalHandlers();
       this.setupFloatingAnimations();
+      // Update navigation based on current authentication state
+      this.updateLandingNavigation(!!this.user);
     }, 100);
   },
 
@@ -370,6 +452,13 @@ const App = {
       if (e.target.matches('#showRegisterModal')) {
         e.preventDefault();
         this.showRegisterModal();
+        return;
+      }
+
+      // Landing page logout button
+      if (e.target.matches('#landingLogout')) {
+        e.preventDefault();
+        this.logout();
         return;
       }
 
@@ -596,16 +685,22 @@ const App = {
           <div class="flex justify-between items-center h-16">
             <div class="flex items-center space-x-8">
               <div class="flex items-center">
-                <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-3">
-                  <i class="fas fa-microscope text-white text-lg"></i>
-                </div>
+                <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" class="h-10 mr-3">
                 <div>
-                  <h1 class="text-xl font-bold text-foreground">CODECTI</h1>
-                  <p class="text-xs text-muted-foreground">Plataforma CTeI</p>
+                  <h1 class="text-xl font-bold text-foreground">CODECTI Chocó</h1>
+                  <p class="text-xs text-muted-foreground">Choco Inventa</p>
                 </div>
               </div>
               
               <div class="hidden md:flex space-x-6">
+                <a 
+                  href="/" 
+                  class="nav-link"
+                  title="Volver al Inicio"
+                >
+                  <i class="fas fa-home mr-1"></i>
+                  Inicio
+                </a>
                 <a 
                   href="/dashboard" 
                   onclick="event.preventDefault(); App.navigateToDashboard();"
@@ -888,8 +983,8 @@ const App = {
         
         <div class="project-actions">
           <button 
-            onclick="App.navigateToProject(${project.id})"
-            class="btn btn-primary btn-sm"
+            class="btn btn-primary btn-sm project-detail-btn"
+            data-project-id="${project.id}"
           >
             <i class="fas fa-eye mr-1"></i>
             Ver Detalles
@@ -969,7 +1064,7 @@ const App = {
     container.innerHTML = `
       <div class="max-w-4xl mx-auto p-6">
         <div class="mb-6">
-          <button onclick="App.navigateToDashboard()" class="text-codecti-primary hover:text-codecti-secondary mb-4">
+          <button onclick="App.navigateToDashboard()" class="btn btn-secondary mb-4">
             <i class="fas fa-arrow-left mr-2"></i>
             Volver a proyectos
           </button>
@@ -1031,14 +1126,13 @@ const App = {
                         ${this.formatFileSize(project.document_size || 0)}
                       </p>
                     </div>
-                    <a 
-                      href="/api/projects/${project.id}/download" 
+                    <button 
+                      onclick="App.downloadDocument(${project.id})"
                       class="btn btn-primary btn-sm"
-                      download
                     >
                       <i class="fas fa-download mr-1"></i>
                       Descargar
-                    </a>
+                    </button>
                   </div>
                 </div>
               ` : `
@@ -1308,6 +1402,23 @@ const App = {
     }
   },
 
+  // Initialize logos
+  async initializeLogos() {
+    try {
+      if (typeof LogoManager !== 'undefined') {
+        await LogoManager.renderNavbarLogo();
+        await LogoManager.renderFooterLogo();
+        
+        // If on landing page, also render hero logo
+        if (this.currentPath === '/') {
+          await LogoManager.renderHeroLogo();
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing logos:', error);
+    }
+  },
+
   // Utility methods
   showNotification(message, type = 'info') {
     const notification = document.createElement('div');
@@ -1369,6 +1480,60 @@ const App = {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  },
+
+  // Download document function
+  async downloadDocument(projectId) {
+    try {
+      // Create a temporary link element for download
+      const downloadUrl = `/api/projects/${projectId}/download`;
+      
+      // Use fetch to get the file with proper headers
+      const response = await fetch(downloadUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al descargar el documento');
+      }
+
+      // Get the filename from the Content-Disposition header if available
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `documento_proyecto_${projectId}.pdf`;
+      
+      if (contentDisposition) {
+        const matches = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      }
+
+      // Convert response to blob
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      this.showNotification('Documento descargado exitosamente', 'success');
+      
+    } catch (error) {
+      console.error('Download error:', error);
+      this.showNotification('Error al descargar el documento', 'error');
+    }
   }
 };
 
