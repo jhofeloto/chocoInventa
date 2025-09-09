@@ -221,7 +221,7 @@ const App = {
       if (status) params.append('status', status);
       params.append('sort', sort);
       
-      const response = await axios.get(`/projects?${params.toString()}`);
+      const response = await axios.get(`/api/projects?${params.toString()}`);
       if (response.data.success) {
         this.projects = response.data.projects;
         return this.projects;
@@ -235,7 +235,7 @@ const App = {
 
   async loadProject(id) {
     try {
-      const response = await axios.get(`/projects/${id}`);
+      const response = await axios.get(`/api/projects/${id}`);
       if (response.data.success) {
         return response.data.project;
       }
@@ -372,7 +372,7 @@ const App = {
 
   async createProject(projectData) {
     try {
-      const response = await axios.post('/projects', projectData);
+      const response = await axios.post('/api/projects', projectData);
       if (response.data.success) {
         this.showNotification('Proyecto creado exitosamente', 'success');
         return response.data.project;
@@ -391,7 +391,7 @@ const App = {
       const formData = new FormData();
       formData.append('document', file);
       
-      const response = await axios.post(`/projects/${projectId}/upload`, formData, {
+      const response = await axios.post(`/api/projects/${projectId}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
