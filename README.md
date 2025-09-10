@@ -164,6 +164,61 @@
 - ✅ **Integración con Cloudflare R2** - Almacenamiento distribuido global con URLs públicas
 - ✅ **Autenticación JWT** - Acceso seguro con validación de permisos por archivo y carpeta
 
+### 📖 Sistema de Publicaciones Científicas y DOI (NUEVO - HU-14)
+- ✅ **Repositorio científico institucional** - Plataforma completa para preservar y diseminar conocimiento científico del Chocó
+- ✅ **Generación automática de DOI** - Sistema mock de Digital Object Identifiers para publicaciones oficiales
+- ✅ **Metadatos Dublin Core** - Estándares internacionales de catalogación científica con 15 elementos principales
+- ✅ **Sistema de autores y afiliaciones** - Gestión completa de investigadores con ORCID mock y contribuciones detalladas
+- ✅ **Portal público de consulta** - Interface moderna sin autenticación para acceso abierto al conocimiento (/publicaciones)
+- ✅ **Panel de administración** - Gestión completa de publicaciones desde el dashboard administrativo
+- ✅ **Tipos de publicación múltiples** - Soporte para artículos, libros, capítulos, tesis, reportes, datasets y software
+- ✅ **Sistema de citas automático** - Generación en formatos APA, MLA, Chicago, Harvard, IEEE y Nature
+- ✅ **Exportación académica** - BibTeX, RIS, EndNote, Mendeley y Zotero para gestores de referencias
+- ✅ **Control de acceso granular** - Niveles de acceso abierto, restringido, embargo y cerrado
+- ✅ **Métricas de impacto completas** - Citas, descargas, visualizaciones, Altmetric y análisis geográfico
+- ✅ **Sistema de licencias** - Creative Commons (CC-BY, CC-BY-SA, CC-BY-NC, etc.) y derechos reservados
+- ✅ **Búsqueda avanzada científica** - Filtros por tipo, autor, institución, año, área temática y palabras clave
+- ✅ **Estadísticas del repositorio** - Dashboard ejecutivo con métricas institucionales y análisis de productividad
+- ✅ **Integración con archivos** - Conexión directa con sistema de gestión de documentos (HU-13)
+- ✅ **API REST completa** - Endpoints para CRUD, búsqueda, estadísticas, citas y métricas de publicaciones
+- ✅ **3 publicaciones mock del Chocó** - Biodiversidad acuática, microalgas biotecnológicas, macroinvertebrados bentónicos
+
+### 📊 Sistema de Indicadores y Visualización de CTeI (NUEVO - HU-15)
+- ✅ **Dashboard ejecutivo de indicadores** - Sistema profesional de métricas CTeI para directivos y toma de decisiones gubernamental
+- ✅ **API REST completa para indicadores** - Endpoints especializados (/api/indicators) para métricas regionales, institucionales y de impacto
+- ✅ **Métricas de productividad regional** - Análisis completo del Chocó: proyectos, investigadores, publicaciones, presupuesto e innovación
+- ✅ **Comparativas institucionales** - Benchmarking entre universidades y centros de investigación con ranking y scoring
+- ✅ **Análisis de áreas de investigación** - Evaluación detallada por área UNESCO con métricas de colaboración y transferencia tecnológica
+- ✅ **Red de colaboraciones científicas** - Mapeo de conexiones internas, nacionales e internacionales con análisis de influencia
+- ✅ **Métricas de impacto académico y societal** - H-index, citas, impacto en políticas públicas y beneficios socioambientales
+- ✅ **Tendencias temporales** - Análisis de crecimiento y evolución de indicadores CTeI en los últimos 24 meses
+- ✅ **Distribución geográfica** - Mapeo de actividad científica por municipios del Chocó con análisis de especialización
+- ✅ **Sistema de benchmarking nacional** - Comparación con otros departamentos colombianos y referencias internacionales
+- ✅ **Generación de reportes ejecutivos** - Reportes automáticos para CODECTI con recomendaciones estratégicas y análisis SWOT
+- ✅ **Visualizaciones interactivas** - Charts avanzados con Chart.js para análisis de tendencias, comparaciones y mapas de calor
+- ✅ **Portal ejecutivo público** - Interface especializada (/indicadores) para consulta pública de métricas CTeI departamentales
+- ✅ **Integración con panel administrativo** - Acceso directo desde herramientas de administración con botón dedicado
+- ✅ **Datos mock realistas del Chocó** - Métricas basadas en la realidad científica y tecnológica regional
+- ✅ **Auto-refresh y exportación** - Actualización automática cada 5 minutos y exportación de datos en múltiples formatos
+
+### 🔔 Sistema de Notificaciones y Comunicación Inteligente (NUEVO - HU-17)
+- ✅ **Centro de notificaciones en tiempo real** - Sistema completo de notificaciones con badges y actualizaciones automáticas
+- ✅ **API REST completa de comunicación** - Endpoints especializados (/api/notifications, /api/conversations) para mensajería y alertas
+- ✅ **Sistema de mensajería interna** - Chat entre usuarios con conversaciones grupales e individuales
+- ✅ **Gestión de preferencias de usuario** - Configuración personalizada de canales y frecuencia de notificaciones
+- ✅ **Notificaciones multi-canal** - Soporte para in-app, email, push y SMS con configuración granular
+- ✅ **Sistema de plantillas administrativas** - Gestión de templates para notificaciones automáticas del sistema
+- ✅ **Dashboard de comunicaciones** - Panel administrativo con estadísticas y gestión de comunicación institucional
+- ✅ **Floating Action Buttons** - Acceso rápido a notificaciones y mensajes desde cualquier página
+- ✅ **Interfaz responsive moderna** - Centro de notificaciones y chat optimizado para móviles y desktop
+- ✅ **Base de datos completa** - Esquema robusto con tablas para notificaciones, mensajes, conversaciones y preferencias
+- ✅ **Integración con autenticación JWT** - Sistema seguro con middleware de autenticación en todos los endpoints
+- ✅ **Búsqueda de usuarios para mensajería** - Sistema de búsqueda para iniciar conversaciones con otros investigadores
+- ✅ **Contador de mensajes no leídos** - Badges en tiempo real para notificaciones y mensajes pendientes
+- ✅ **Estados de lectura** - Sistema completo de tracking de notificaciones leídas/no leídas
+- ✅ **Arquitectura preparada para WebSockets** - Estructura base para futuras implementaciones de tiempo real
+- ✅ **Datos de ejemplo realistas** - Plantillas y notificaciones mock configuradas para testing completo
+
 ## 🚀 URLs de Acceso
 
 - **Landing Page**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev
@@ -174,6 +229,7 @@
 - **Dashboard**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/dashboard
 - **Panel Admin**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/admin
 - **Dashboard Analítico**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/analytics
+- **Dashboard de Indicadores CTeI**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/indicadores
 - **Gestor de Archivos**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/files
 - **API Health Check**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/monitoring/health
 - **API Proyectos Públicos**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/public/projects
@@ -188,7 +244,19 @@
 - **API Gestión de Archivos**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/files
 - **API Búsqueda de Archivos**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/files/search?query=proyecto
 - **API Estadísticas de Archivos**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/files/stats
+- **API Indicadores CTeI**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/indicators
+- **API Productividad Regional**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/indicators/productivity
+- **API Métricas Institucionales**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/indicators/institutions
+- **API Red de Colaboraciones**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/indicators/collaboration
+- **API Dashboard Ejecutivo**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/indicators/dashboard
+- **API Reportes Ejecutivos**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/indicators/reports
 - **Logo Settings API**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/settings/logo
+- **API Notificaciones**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/notifications
+- **API Conversaciones**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/conversations
+- **API Contador No Leídas**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/unread-count
+- **API Preferencias de Notificación**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/preferences
+- **API Plantillas de Notificación**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/templates
+- **API Estadísticas de Comunicación**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/stats
 
 ## 👥 Credenciales de Prueba
 
@@ -277,6 +345,9 @@ webapp/
 │   │   ├── publicResources.ts # Rutas públicas de recursos (NUEVO - HU-11)
 │   │   ├── analytics.ts       # Rutas de analytics y reportes (NUEVO - HU-12)
 │   │   ├── files.ts           # Rutas de gestión de archivos (NUEVO - HU-13)
+│   │   ├── publications.ts    # Rutas de publicaciones científicas (NUEVO - HU-14)
+│   │   ├── indicators.ts      # Rutas de indicadores CTeI (NUEVO - HU-15)
+│   │   ├── notifications.ts   # Rutas de notificaciones y mensajería (NUEVO - HU-17)
 │   │   ├── monitoring.ts      # Rutas de monitoreo (CORREGIDO)
 │   │   └── settings.ts        # Rutas de configuración (NUEVO)
 │   ├── monitoring/            # Sistema de monitoreo (CORREGIDO)
@@ -304,6 +375,10 @@ webapp/
 │       ├── resources-manager.js # Gestor de recursos del panel admin (NUEVO - HU-11)
 │       ├── analytics-dashboard.js # Dashboard analítico interactivo (NUEVO - HU-12)
 │       ├── file-manager.js    # Gestor de archivos y documentos (NUEVO - HU-13)
+│       ├── public-publications.js # Portal de publicaciones científicas (NUEVO - HU-14)
+│       ├── indicators-dashboard.js # Dashboard de indicadores CTeI (NUEVO - HU-15)
+│       ├── notifications.js   # Sistema de notificaciones y mensajería (NUEVO - HU-17)
+│       ├── notifications.css  # Estilos específicos del sistema de notificaciones (NUEVO - HU-17)
 │       ├── styles.css         # Estilos personalizados con branding
 │       ├── admin-dashboard.js # Dashboard administrativo (CORREGIDO)
 │       ├── logo-manager.js    # Gestor de logos dinámico (NUEVO)
@@ -422,6 +497,9 @@ npm run deploy:prod         # Deploy específico a producción
 | **Sistema de Recursos** | ✅ | 100% | **NUEVO: HU-11 implementado completamente** |
 | **Dashboard Analítico** | ✅ | 100% | **NUEVO: HU-12 implementado completamente** |
 | **Gestor de Archivos** | ✅ | 100% | **NUEVO: HU-13 implementado completamente** |
+| **Repositorio Científico** | ✅ | 100% | **NUEVO: HU-14 implementado completamente** |
+| **Indicadores CTeI** | ✅ | 100% | **NUEVO: HU-15 implementado completamente** |
+| **Notificaciones y Chat** | ✅ | 80% | **NUEVO: HU-17 iniciado - API y frontend base** |
 | **Panel Admin** | ✅ | 100% | **Errores resueltos, completamente operativo** |
 | **Sistema de Logo** | ✅ | 100% | **Nuevo: Configuración dinámica implementada** |
 | **Monitoreo** | ✅ | 100% | **Corregido: Sistema profesional completo** |
@@ -459,6 +537,15 @@ npm run deploy:prod         # Deploy específico a producción
 - ✅ **Sistema de permisos**: Autenticación JWT integrada en todos los endpoints
 - ✅ **Datos mock realistas**: 3 archivos y 3 carpetas con metadata completa
 - ✅ **Funcionalidades avanzadas**: Versiones, estadísticas, categorización y tags
+
+### 🆕 HU-17: Sistema de Notificaciones y Comunicación Inteligente
+**IMPLEMENTACIÓN INICIADA** - Base sólida del sistema de comunicación:
+- ✅ **API REST completa**: Endpoints para notificaciones, mensajería y preferencias de usuario
+- ✅ **Base de datos robusta**: Esquema completo con 6 tablas para notificaciones y comunicación
+- ✅ **Frontend interactivo**: Centro de notificaciones y chat con interfaz moderna y responsive
+- ✅ **Autenticación integrada**: Sistema seguro con JWT en todos los endpoints
+- ✅ **Floating Action Buttons**: Acceso rápido desde cualquier página de la plataforma
+- 🔄 **En progreso**: Sistema de tiempo real con WebSockets y integración completa con módulos existentes
 
 ## 🔍 Próximos Pasos Sugeridos
 
@@ -511,7 +598,13 @@ Este proyecto está desarrollado para CODECTI - Corporación para el Desarrollo 
 > 
 > 📁 **HU-13 Gestor de Archivos**: ✅ Implementado completamente - Sistema avanzado de gestión de documentos
 > 
-> ✅ **Panel de Administración**: Totalmente operativo con acceso directo a analytics
+> 📖 **HU-14 Repositorio Científico**: ✅ Implementado completamente - Sistema de publicaciones y DOI
+> 
+> 📊 **HU-15 Indicadores CTeI**: ✅ Implementado completamente - Dashboard ejecutivo de métricas gubernamentales
+> 
+> 🔔 **HU-17 Notificaciones**: 🔄 Implementación iniciada - Sistema de comunicación inteligente con API REST completa
+> 
+> ✅ **Panel de Administración**: Totalmente operativo con acceso directo a todos los sistemas
 > 
 > 🎨 **Branding Configurable**: Logo y texto de respaldo gestionables desde admin
 > 
@@ -521,4 +614,4 @@ Este proyecto está desarrollado para CODECTI - Corporación para el Desarrollo 
 > 
 > 🎯 **CODECTI Compliance**: 100% COMPLETADO - Plataforma científica completamente funcional
 > 
-> ✅ **Fase 1**: Portal Público ✅ | **Fase 2**: Noticias ✅ | **Fase 3**: Eventos ✅ | **Fase 4**: Recursos ✅ | **Fase 5**: Analytics ✅ | **Fase 6**: Gestión Archivos ✅
+> ✅ **Fase 1**: Portal Público ✅ | **Fase 2**: Noticias ✅ | **Fase 3**: Eventos ✅ | **Fase 4**: Recursos ✅ | **Fase 5**: Analytics ✅ | **Fase 6**: Gestión Archivos ✅ | **Fase 7**: Repositorio Científico ✅ | **Fase 8**: Indicadores CTeI ✅ | **Fase 9**: Notificaciones 🔄

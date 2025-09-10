@@ -63,6 +63,18 @@ app.route('/api/analytics', analyticsRoutes);
 import filesRoutes from './routes/files';
 app.route('/api/files', filesRoutes);
 
+// HU-14: Scientific Publications and DOI System
+import publicationsRoutes from './routes/publications';
+app.route('/api/publications', publicationsRoutes);
+
+// HU-15: CTeI Indicators and Visualization System
+import { indicatorsRoutes } from './routes/indicators';
+app.route('/api/indicators', indicatorsRoutes);
+
+// HU-17: Sistema de Notificaciones y Comunicación Inteligente
+import { notifications } from './routes/notifications';
+app.route('/api', notifications);
+
 // Public API Routes (No authentication required) - HU-08: Portal Público, HU-09: Noticias, HU-10: Eventos, HU-11: Recursos
 app.route('/api/public', publicRoutes);
 app.route('/api/public/news', publicNewsRoutes);
@@ -1042,6 +1054,139 @@ app.get('/recursos', (c) => {
   );
 });
 
+// Public Publications Routes - HU-14: Sistema de Publicaciones Científicas y DOI
+app.get('/publicaciones', (c) => {
+  return c.render(
+    <div>
+      {/* Navigation */}
+      <nav className="navbar bg-white border-b border-gray-200 shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center py-4">
+            <div className="navbar-logo flex items-center">
+              <a href="/" className="flex items-center">
+                <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" className="h-10 mr-3" />
+                <div>
+                  <div className="font-bold text-xl text-primary">Choco Inventa</div>
+                  <div className="text-xs text-gray-600">Repositorio Científico</div>
+                </div>
+              </a>
+            </div>
+            
+            <div className="nav-actions">
+              <a href="/" className="btn btn-outline mr-3">
+                <i className="fas fa-home mr-2"></i>
+                Inicio
+              </a>
+              <a href="/portal" className="btn btn-outline mr-3">
+                <i className="fas fa-flask mr-2"></i>
+                Proyectos
+              </a>
+              <a href="/noticias" className="btn btn-outline mr-3">
+                <i className="fas fa-newspaper mr-2"></i>
+                Noticias
+              </a>
+              <a href="/eventos" className="btn btn-outline mr-3">
+                <i className="fas fa-calendar mr-2"></i>
+                Eventos
+              </a>
+              <a href="/recursos" className="btn btn-outline mr-3">
+                <i className="fas fa-book-open mr-2"></i>
+                Recursos
+              </a>
+              <button id="showLoginModal" className="btn btn-outline">
+                <i className="fas fa-sign-in-alt mr-2"></i>
+                Acceder
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Publications Portal Container */}
+      <div id="publications-container">
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Inicializando Repositorio Científico</h2>
+            <p className="text-gray-500">Cargando sistema de publicaciones avanzado...</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="md:col-span-2">
+              <div className="flex items-center mb-4">
+                <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" className="h-10 mr-3" />
+                <div>
+                  <div className="font-bold text-xl">Choco Inventa</div>
+                  <div className="text-sm text-gray-400">Repositorio Científico CODECTI</div>
+                </div>
+              </div>
+              <p className="text-gray-400 leading-relaxed">
+                Repositorio científico del CODECTI Chocó que preserva, organiza y disemina el conocimiento científico 
+                generado en la región del Chocó Biogeográfico, contribuyendo al desarrollo científico y tecnológico.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Portal Científico</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="/publicaciones" className="hover:text-white">Publicaciones Científicas</a></li>
+                <li><a href="/portal" className="hover:text-white">Proyectos CTeI</a></li>
+                <li><a href="/recursos" className="hover:text-white">Recursos Científicos</a></li>
+                <li><a href="/eventos" className="hover:text-white">Eventos CTeI</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Información</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="/noticias" className="hover:text-white">Noticias CTeI</a></li>
+                <li><a href="/" className="hover:text-white">Acerca de CODECTI</a></li>
+                <li><a href="/" className="hover:text-white">Contacto</a></li>
+                <li><a href="/" className="hover:text-white">Política de Acceso Abierto</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 CODECTI Chocó - Corporación para el Desarrollo de la Ciencia, la Tecnología y la Innovación del Chocó. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Scripts */}
+      <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+      <script src="/static/logo-manager.js"></script>
+      <script src="/static/app.js"></script>
+      <script src="/static/public-publications.js"></script>
+      <script dangerouslySetInnerHTML={{
+        __html: `
+          document.addEventListener('DOMContentLoaded', function() {
+            // Initialize logo manager first
+            if (typeof LogoManager !== 'undefined') {
+              window.logoManager = new LogoManager();
+            }
+            
+            // Initialize login/register modals
+            if (typeof App !== 'undefined' && App.initializeAuth) {
+              App.initializeAuth();
+            }
+            
+            // Initialize the public publications portal
+            if (typeof PublicationsPortal !== 'undefined') {
+              window.publicationsPortal = new PublicationsPortal();
+            }
+          });
+        `
+      }}></script>
+    </div>
+  );
+});
+
 // Main application routes - Landing Page
 app.get('/', (c) => {
   return c.render(
@@ -1066,6 +1211,9 @@ app.get('/', (c) => {
               </a>
               <a href="/recursos" className="btn btn-outline mr-3">
                 Recursos
+              </a>
+              <a href="/publicaciones" className="btn btn-outline mr-3">
+                Publicaciones
               </a>
               <button id="showLoginModal" className="btn btn-outline">
                 Iniciar Sesión
@@ -1369,6 +1517,9 @@ app.get('/dashboard', (c) => {
           <div id="projects-container"></div>
         </main>
       </div>
+      
+      {/* Scripts for notifications system */}
+      <script src="/static/notifications.js"></script>
     </div>
   );
 });
@@ -1463,10 +1614,14 @@ app.get('/admin', (c) => {
               
               <div class="card p-6">
                 <h3 class="text-lg font-semibold mb-4">Herramientas de Administración</h3>
-                <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4">
                   <a href="/analytics" class="btn btn-gradient-primary">
                     <i class="fas fa-chart-pie mr-2"></i>
                     Dashboard Analítico
+                  </a>
+                  <a href="/indicadores" class="btn btn-gradient-purple">
+                    <i class="fas fa-chart-area mr-2"></i>
+                    Indicadores CTeI
                   </a>
                   <a href="/files" class="btn btn-gradient-secondary">
                     <i class="fas fa-folder-open mr-2"></i>
@@ -2001,6 +2156,134 @@ app.get('/projects', (c) => {
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script src="/static/logo-manager.js"></script>
         <script src="/static/public-projects.js"></script>
+    </body>
+    </html>
+  `);
+});
+
+// HU-15: CTeI Indicators Dashboard Route
+app.get('/indicadores', (c) => {
+  return c.render(`
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Indicadores CTeI - Dashboard Ejecutivo - CODECTI Chocó</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <link href="/static/styles.css" rel="stylesheet">
+        
+        <!-- Chart.js for advanced visualizations -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+        
+        <!-- Tailwind Config -->
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            'codecti-primary': '#2563eb',
+                            'codecti-secondary': '#10b981', 
+                            'codecti-accent': '#f59e0b'
+                        }
+                    }
+                }
+            }
+        </script>
+    </head>
+    <body class="bg-gray-50 font-sans">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-sm border-b sticky top-0 z-40">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center">
+                        <a href="/" class="flex items-center">
+                            <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" class="h-10 mr-3" />
+                            <div>
+                                <div class="font-bold text-xl text-codecti-primary">Dashboard CTeI</div>
+                                <div class="text-xs text-gray-600">Indicadores Ejecutivos</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <a href="/portal" class="text-gray-600 hover:text-codecti-primary transition-colors">Portal de Proyectos</a>
+                        <a href="/publicaciones" class="text-gray-600 hover:text-codecti-primary transition-colors">Repositorio</a>
+                        <a href="/noticias" class="text-gray-600 hover:text-codecti-primary transition-colors">Noticias</a>
+                        <a href="/eventos" class="text-gray-600 hover:text-codecti-primary transition-colors">Eventos</a>
+                        <a href="/recursos" class="text-gray-600 hover:text-codecti-primary transition-colors">Recursos</a>
+                        <div class="border-l border-gray-200 pl-4 ml-4">
+                            <a href="/admin" class="bg-codecti-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-cog mr-2"></i>Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Dashboard Container -->
+        <div class="min-h-screen bg-gray-50">
+            <div class="container mx-auto px-4 py-8">
+                <!-- Dashboard Content -->
+                <div id="ctei-dashboard-container">
+                    <!-- Loading State -->
+                    <div class="flex items-center justify-center py-20">
+                        <div class="text-center">
+                            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-codecti-primary mx-auto mb-4"></div>
+                            <h2 class="text-xl font-semibold text-gray-700 mb-2">Cargando Dashboard de Indicadores CTeI</h2>
+                            <p class="text-gray-500">Generando métricas y visualizaciones ejecutivas...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-12">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div>
+                        <div class="flex items-center mb-4">
+                            <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" class="h-10 mr-3">
+                            <div class="text-xl font-bold">Choco Inventa</div>
+                        </div>
+                        <p class="text-gray-300">Sistema de Indicadores de Ciencia, Tecnología e Innovación para el desarrollo sostenible del Chocó</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-4">Plataforma CTeI</h4>
+                        <div class="space-y-2">
+                            <a href="/portal" class="block text-gray-300 hover:text-codecti-accent transition-colors">Portal de Proyectos</a>
+                            <a href="/publicaciones" class="block text-gray-300 hover:text-codecti-accent transition-colors">Repositorio Científico</a>
+                            <a href="/indicadores" class="block text-gray-300 hover:text-codecti-accent transition-colors">Dashboard Ejecutivo</a>
+                            <a href="/admin" class="block text-gray-300 hover:text-codecti-accent transition-colors">Panel de Administración</a>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-4">CODECTI Chocó</h4>
+                        <p class="text-gray-300">Corporación para el Desarrollo de la Ciencia, la Tecnología y la Innovación del Chocó</p>
+                        <div class="mt-4 flex space-x-4">
+                            <a href="#" class="text-gray-300 hover:text-codecti-accent transition-colors">
+                                <i class="fab fa-twitter text-xl"></i>
+                            </a>
+                            <a href="#" class="text-gray-300 hover:text-codecti-accent transition-colors">
+                                <i class="fab fa-linkedin text-xl"></i>
+                            </a>
+                            <a href="#" class="text-gray-300 hover:text-codecti-accent transition-colors">
+                                <i class="fab fa-facebook text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                    <p class="text-gray-300">© 2024 CODECTI Chocó. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+        <script src="/static/ctei-dashboard.js"></script>
     </body>
     </html>
   `);

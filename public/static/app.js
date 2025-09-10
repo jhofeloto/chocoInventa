@@ -1588,6 +1588,15 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('✅ window.App exposed globally:', typeof window.App);
   App.init();
   
+  // Initialize notification system after app initialization
+  setTimeout(() => {
+    const token = localStorage.getItem('codecti-token') || localStorage.getItem('codecti_token');
+    if (token && typeof NotificationSystem !== 'undefined') {
+      console.log('Initializing notification system...');
+      window.notificationSystem = new NotificationSystem();
+    }
+  }, 2000);
+  
   // Test admin functionality after initialization
   setTimeout(() => {
     console.log('=== Admin Test Debug Info ===');

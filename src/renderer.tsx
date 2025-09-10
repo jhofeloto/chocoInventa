@@ -49,6 +49,9 @@ export const renderer = jsxRenderer(({ children }) => {
         {/* Logo Manager */}
         <script src="/static/logo-manager.js"></script>
         
+        {/* Notifications system - HU-17 */}
+        <script src="/static/notifications.js"></script>
+        
         {/* Main application JavaScript */}
         <script src="/static/app.js"></script>
       </body>
