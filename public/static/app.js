@@ -734,7 +734,7 @@ const App = {
               
               ${this.user?.role === 'admin' ? `
                 <button 
-                  onclick="App.navigateToAdmin();"
+                  id="adminPanelBtn"
                   class="btn btn-secondary btn-sm"
                   title="Panel de Administración"
                 >
@@ -744,7 +744,7 @@ const App = {
               ` : ''}
               
               <button 
-                onclick="App.logout()" 
+                id="logoutBtn"
                 class="btn btn-outline btn-sm"
                 title="Cerrar Sesión"
               >
@@ -756,6 +756,31 @@ const App = {
         </div>
       </nav>
     `;
+    
+    // Setup event listeners for navbar buttons
+    this.setupNavbarEventListeners();
+  },
+  
+  setupNavbarEventListeners() {
+    // Admin panel button event listener
+    const adminBtn = document.getElementById('adminPanelBtn');
+    if (adminBtn) {
+      adminBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Admin button clicked, calling navigateToAdmin...');
+        this.navigateToAdmin();
+      });
+    }
+    
+    // Logout button event listener  
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Logout button clicked, calling logout...');
+        this.logout();
+      });
+    }
   },
 
   async renderProjectsList() {
@@ -1374,10 +1399,17 @@ const App = {
   },
 
   navigateToAdmin() {
+    console.log('navigateToAdmin called');
+    console.log('Current user:', this.user);
+    console.log('User role:', this.user?.role);
+    
     if (this.user?.role !== 'admin') {
+      console.log('Access denied - user is not admin');
       this.showNotification('Acceso denegado. Se requieren privilegios de administrador.', 'error');
       return;
     }
+    
+    console.log('Navigating to admin panel...');
     window.history.pushState({}, '', '/admin');
     this.currentPath = '/admin';
     this.renderAdminDashboard();
@@ -1547,10 +1579,38 @@ const App = {
   }
 };
 
+// Expose App globally for onclick handlers
+window.App = App;
+
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM loaded, initializing app...');
+  console.log('✅ window.App exposed globally:', typeof window.App);
   App.init();
+  
+  // Test admin functionality after initialization
+  setTimeout(() => {
+    console.log('=== Admin Test Debug Info ===');
+    console.log('window.App:', typeof window.App);
+    console.log('navigateToAdmin function:', typeof window.App?.navigateToAdmin);
+    console.log('Current user:', window.App?.user);
+    console.log('User role:', window.App?.user?.role);
+    
+    // Simulate admin user for testing
+    console.log('Simulating admin user for testing...');
+    if (window.App) {
+      const originalUser = window.App.user;
+      window.App.user = {
+        id: 999,
+        email: 'test@admin.com',
+        name: 'Test Admin',
+        role: 'admin',
+        institution: 'CODECTI Test'
+      };
+      console.log('✅ Admin user simulated:', window.App.user);
+      console.log('Now you can test: App.navigateToAdmin()');
+    }
+  }, 3000);
   
   // Debug: Check if buttons exist after DOM is loaded
   setTimeout(() => {

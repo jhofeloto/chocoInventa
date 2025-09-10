@@ -372,6 +372,9 @@ app.get('/admin', (c) => {
               <div class="flex justify-between items-center">
                 <h2 class="text-2xl font-bold text-gray-900">Panel de Administración</h2>
                 <div class="flex space-x-2">
+                  <button id="backToDashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i> Volver al Dashboard
+                  </button>
                   <button id="toggleAutoRefresh" class="btn btn-danger">
                     <i class="fas fa-pause mr-1"></i> Pausar Auto-refresh
                   </button>

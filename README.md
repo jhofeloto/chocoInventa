@@ -179,14 +179,43 @@ webapp/
 
 ## 🛠️ Correcciones Implementadas (BUG FIXES)
 
-### Bug #7: Panel de Administración
-**PROBLEMA RESUELTO** ✅
-- **Error**: Panel no cargaba, errores de autenticación JWT
-- **Solución**: 
+### Bug #7: Panel de Administración 
+**PROBLEMA RESUELTO COMPLETAMENTE** ✅
+- **Error Inicial**: Panel no cargaba, errores de autenticación JWT
+- **Solución Inicial**: 
   - Creados archivos de monitoreo faltantes (logger, errorHandler, healthCheck, etc.)
   - Corregido sistema de autenticación en admin-dashboard.js
   - Implementado helper `makeAuthenticatedRequest()` para requests seguros
   - Agregados middlewares de logging, error handling y performance
+
+### Corrección Adicional: Navegación de Botones (Nuevo)
+**PROBLEMAS ADICIONALES RESUELTOS** ✅
+- **Error 1**: Botón de admin en dashboard requería actualización de página para funcionar
+  - **Causa**: onclick inline no funcionaba con HTML dinámico
+  - **Solución**: Cambiado a event listeners programáticos con IDs únicos
+  - **Resultado**: Botón funciona inmediatamente sin refrescar
+
+- **Error 2**: Botón "Volver al Dashboard" en panel admin no funcionaba
+  - **Causa**: `App.navigateToDashboard` no se encontraba correctamente
+  - **Solución**: Referencia correcta a `window.App.navigateToDashboard` con logs de debug
+  - **Resultado**: Navegación bidireccional dashboard ↔ admin completamente funcional
+
+### Solución Técnica: Event Listeners Programáticos
+```javascript
+// ANTES (no funcionaba)
+onclick="App.navigateToAdmin();"
+
+// DESPUÉS (funciona perfectamente)
+setupNavbarEventListeners() {
+  const adminBtn = document.getElementById('adminPanelBtn');
+  if (adminBtn) {
+    adminBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.navigateToAdmin();
+    });
+  }
+}
+```
 
 ### Ajuste: Sistema de Logo Dinámico
 **IMPLEMENTADO COMPLETAMENTE** ✅
@@ -268,6 +297,13 @@ npm run deploy:prod         # Deploy específico a producción
 
 ### ✅ Bug #7: Panel de administración
 **COMPLETAMENTE RESUELTO** - Panel carga correctamente, sin errores, completamente funcional
+
+### ✅ Problema Navegación Botones (Nuevo - 2025)
+**RESUELTOS COMPLETAMENTE** - Corregidos problemas reportados por usuario:
+- ✅ **Botón Admin en Dashboard**: Ya no requiere actualización de página
+- ✅ **Botón Volver al Dashboard**: Funciona correctamente desde panel admin
+- ✅ **Event Listeners**: Cambiados de onclick inline a programáticos
+- ✅ **window.App**: Correctamente expuesto para acceso global
 
 ### 🆕 Sistema de Logo Dinámico
 **IMPLEMENTADO** - Configuración flexible de branding desde panel de administración

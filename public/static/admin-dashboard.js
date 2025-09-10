@@ -87,6 +87,11 @@ const AdminDashboard = {
       this.openSystemLogsDashboard();
     });
 
+    // Back to dashboard
+    document.getElementById('backToDashboard')?.addEventListener('click', () => {
+      this.backToDashboard();
+    });
+
     // Force health check
     document.getElementById('forceHealthCheck')?.addEventListener('click', () => {
       this.forceHealthCheck();
@@ -1072,6 +1077,22 @@ const AdminDashboard = {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  },
+
+  // Regresar al dashboard principal
+  backToDashboard() {
+    console.log('backToDashboard called');
+    console.log('window.App:', typeof window.App);
+    console.log('App.navigateToDashboard:', typeof window.App?.navigateToDashboard);
+    
+    if (typeof window.App !== 'undefined' && typeof window.App.navigateToDashboard === 'function') {
+      console.log('Calling App.navigateToDashboard...');
+      window.App.navigateToDashboard();
+    } else {
+      console.log('App.navigateToDashboard not available, using fallback...');
+      // Fallback: redirigir directamente
+      window.location.href = '/dashboard';
+    }
   },
 
   // Abrir dashboard avanzado de logs del sistema
