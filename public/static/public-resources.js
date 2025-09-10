@@ -91,7 +91,7 @@ class PublicResourcesPortal {
     async loadCategories() {
         try {
             console.log('Loading resource categories...');
-            const response = await axios.get('/api/public/resources/categories');
+            const response = await axios.get('/public-api/resources/categories');
             
             if (response.data.success) {
                 this.renderCategories(response.data.data);
@@ -112,7 +112,7 @@ class PublicResourcesPortal {
                 offset: ((this.currentPage - 1) * this.itemsPerPage).toString()
             });
 
-            const response = await axios.get(`/api/public/resources?${params}`);
+            const response = await axios.get(`/public-api/resources?${params}`);
             
             if (response.data.success) {
                 this.renderResources(response.data.data.resources);
@@ -340,7 +340,7 @@ class PublicResourcesPortal {
 
     async showResourceDetails(slug) {
         try {
-            const response = await axios.get(`/api/public/resources/${slug}`);
+            const response = await axios.get(`/public-api/resources/${slug}`);
             
             if (response.data.success) {
                 const resource = response.data.data;
@@ -442,7 +442,7 @@ class PublicResourcesPortal {
     async downloadResource(slug, fileUrl) {
         try {
             // Track download
-            await axios.post(`/api/public/resources/${slug}/download`);
+            await axios.post(`/public-api/resources/${slug}/download`);
             
             // Trigger download
             if (fileUrl) {

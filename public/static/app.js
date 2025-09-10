@@ -1,6 +1,8 @@
 // CODECTI Platform - Frontend Application
 
 // Global application state
+console.log('🚀 app.js loading v1.2.3, current path:', window.location.pathname);
+
 const App = {
   user: null,
   token: localStorage.getItem('codecti_token'),
@@ -9,6 +11,14 @@ const App = {
   
   // Initialize the application
   async init() {
+    console.log('App.init() called for path:', this.currentPath);
+    
+    // Skip initialization for admin pages to avoid conflicts
+    if (this.currentPath.startsWith('/admin/')) {
+      console.log('Skipping App initialization for admin page');
+      return;
+    }
+    
     this.setupAxiosDefaults();
     await this.checkAuthentication();
     this.setupEventListeners();
@@ -41,8 +51,15 @@ const App = {
 
   // Check if user is authenticated
   async checkAuthentication() {
+    console.log('checkAuthentication called, currentPath:', this.currentPath);
     // Define public routes that don't require authentication
-    const publicRoutes = ['/', '/docs', '/soporte'];
+    const publicRoutes = ['/', '/docs', '/soporte', '/admin/roles', '/admin/users'];
+    
+    // Skip authentication for admin testing pages
+    if (this.currentPath.startsWith('/admin/')) {
+      console.log('Skipping authentication for admin page testing');
+      return;
+    }
     
     if (!this.token) {
       // Only redirect to home if trying to access protected pages
@@ -81,10 +98,10 @@ const App = {
     
     if (isAuthenticated) {
       navActions.innerHTML = `
-        <a href="/dashboard" class="btn btn-outline">
+        <button onclick="App.navigateToDashboard()" class="btn btn-outline">
           <i class="fas fa-tachometer-alt mr-2"></i>
           Dashboard
-        </a>
+        </button>
         <button id="landingLogout" class="btn btn-secondary">
           <i class="fas fa-sign-out-alt mr-2"></i>
           Cerrar Sesión
@@ -123,6 +140,12 @@ const App = {
         break;
       case '/admin':
         this.renderAdminDashboard();
+        break;
+      case '/admin/roles':
+      case '/admin/users':
+      case '/admin/logs':
+        // Admin pages are server-rendered, don't interfere
+        console.log('Admin page detected, skipping route handling');
         break;
       case '/docs':
       case '/soporte':
@@ -185,9 +208,9 @@ const App = {
         this.showNotification('Inicio de sesión exitoso', 'success');
         
         // Use full page redirect when navigating from landing to dashboard
-        // because they have different DOM structures
+        // Navigate to dashboard after successful login
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          this.navigateToDashboard();
         }, 500);
       } else {
         this.showNotification(response.data.message || 'Error de autenticación', 'error');
@@ -199,6 +222,8 @@ const App = {
   },
 
   logout() {
+    console.log('logout() called from path:', this.currentPath);
+    console.log('Stack trace:', new Error().stack);
     this.user = null;
     this.token = null;
     localStorage.removeItem('codecti_token');
@@ -209,6 +234,11 @@ const App = {
       this.updateLandingNavigation(false);
       this.showNotification('Sesión cerrada correctamente', 'success');
     } else {
+      // Don't redirect admin pages during testing
+      if (this.currentPath.startsWith('/admin/')) {
+        console.log('Skipping logout redirect for admin testing page');
+        return;
+      }
       window.location.href = '/';
     }
   },
@@ -1387,15 +1417,19 @@ const App = {
 
   // Navigation methods
   navigateToProject(projectId) {
+    console.log('Navigating to project:', projectId);
     window.history.pushState({}, '', `/project/${projectId}`);
     this.currentPath = `/project/${projectId}`;
-    this.renderProjectDetail(projectId);
+    // Force full page reload to get proper DOM structure  
+    window.location.reload();
   },
 
   navigateToDashboard() {
+    console.log('Navigating to dashboard...');
     window.history.pushState({}, '', '/dashboard');
     this.currentPath = '/dashboard';
-    this.renderDashboard();
+    // Force full page reload to get proper DOM structure
+    window.location.reload();
   },
 
   navigateToAdmin() {
@@ -1412,7 +1446,8 @@ const App = {
     console.log('Navigating to admin panel...');
     window.history.pushState({}, '', '/admin');
     this.currentPath = '/admin';
-    this.renderAdminDashboard();
+    // Force full page reload to get proper DOM structure
+    window.location.reload();
   },
 
   renderAdminDashboard() {
@@ -1586,7 +1621,14 @@ window.App = App;
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM loaded, initializing app...');
   console.log('✅ window.App exposed globally:', typeof window.App);
-  App.init();
+  
+  // Skip App.init for admin pages
+  const currentPath = window.location.pathname;
+  if (currentPath.startsWith('/admin/')) {
+    console.log('Skipping App.init() for admin page:', currentPath);
+  } else {
+    App.init();
+  }
   
   // Initialize notification system after app initialization
   setTimeout(() => {

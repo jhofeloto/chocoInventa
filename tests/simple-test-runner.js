@@ -13,15 +13,15 @@ const TEST_CONFIG = {
   testUsers: {
     admin: {
       email: 'admin@codecti.choco.gov.co',
-      password: 'admin123'
+      password: 'password123'
     },
     researcher: {
       email: 'investigador1@codecti.choco.gov.co', 
-      password: 'admin123'
+      password: 'password123'
     },
     testUser: {
       email: 'test@codecti.test',
-      password: 'testpass123',
+      password: 'password123',
       name: 'Test User',
       institution: 'Test Institution'
     }

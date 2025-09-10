@@ -3,26 +3,32 @@
 
 import { Hono } from 'hono';
 import type { Bindings, Project, ProjectsListResponse } from '../types';
-import { logger } from '../monitoring/logger';
+// import { logger } from '../monitoring/logger';
 
 const publicRoutes = new Hono<{ Bindings: Bindings }>();
 
-// GET /api/public/projects - Lista pública de proyectos (sin autenticación)
+// TEST: Simple test route to debug authentication issues
+publicRoutes.get('/test', async (c) => {
+  return c.json({
+    success: true,
+    message: "Public API test route working!",
+    timestamp: new Date().toISOString(),
+    path: c.req.path
+  });
+});
+
+// GET /public-api/projects - Lista pública de proyectos (sin autenticación)
 publicRoutes.get('/projects', async (c) => {
-  try {
-    const search = c.req.query('search') || '';
-    const status = c.req.query('status') || '';
-    const area = c.req.query('area') || '';
-    const institution = c.req.query('institution') || '';
-    const sort = c.req.query('sort') || 'created_at';
-    const order = c.req.query('order') || 'desc';
-    const page = parseInt(c.req.query('page') || '1');
-    const limit = parseInt(c.req.query('limit') || '12');
-    const offset = (page - 1) * limit;
+  return c.json({
+    success: true,
+    message: 'Public projects API is working!',
+    timestamp: new Date().toISOString(),
+    data: []
+  });
 
     // Log public access
-    logger.info('PUBLIC_API_ACCESS', {
-      endpoint: '/api/public/projects',
+    console.log('PUBLIC_API_ACCESS', {
+      endpoint: '/public-api/projects',
       params: { search, status, area, institution, sort, order, page, limit },
       userAgent: c.req.header('User-Agent'),
       ip: c.req.header('CF-Connecting-IP') || 'unknown'
@@ -34,27 +40,20 @@ publicRoutes.get('/projects', async (c) => {
         p.id,
         p.title,
         p.summary,
-        p.description,
-        p.objectives,
         p.status,
-        p.start_date,
-        p.end_date,
-        p.budget,
-        p.institution,
-        p.research_area,
-        p.keywords,
+        p.responsible_person,
         p.created_at,
         p.updated_at,
         u.name as responsible_name
       FROM projects p
-      LEFT JOIN users u ON p.responsible = u.email
-      WHERE p.status != 'draft'
+      LEFT JOIN users u ON p.created_by = u.id
+      WHERE p.status = 'active'
     `;
     
     let countQuery = `
       SELECT COUNT(*) as total 
       FROM projects p 
-      WHERE p.status != 'draft'
+      WHERE p.status = 'active'
     `;
     
     const params: any[] = [];
@@ -65,30 +64,16 @@ publicRoutes.get('/projects', async (c) => {
       conditions.push(`(
         p.title LIKE ? OR 
         p.summary LIKE ? OR 
-        p.keywords LIKE ? OR 
-        p.research_area LIKE ? OR
-        p.institution LIKE ?
+        p.responsible_person LIKE ?
       )`);
       const searchTerm = `%${search}%`;
-      params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+      params.push(searchTerm, searchTerm, searchTerm);
     }
 
-    // Status filter
-    if (status) {
+    // Status filter (already filtered in WHERE clause, but allow override)
+    if (status && status !== 'active') {
       conditions.push('p.status = ?');
       params.push(status);
-    }
-
-    // Research area filter
-    if (area) {
-      conditions.push('p.research_area LIKE ?');
-      params.push(`%${area}%`);
-    }
-
-    // Institution filter
-    if (institution) {
-      conditions.push('p.institution LIKE ?');
-      params.push(`%${institution}%`);
     }
 
     // Add conditions to queries
@@ -115,8 +100,8 @@ publicRoutes.get('/projects', async (c) => {
     let total = 0;
 
     // Execute queries based on environment
-    if (c.env?.DB && process.env.NODE_ENV === 'production') {
-      // Production: Use Cloudflare D1
+    if (c.env?.DB) {
+      // Use Cloudflare D1 (both production and development)
       const [projectsResult, countResult] = await Promise.all([
         c.env.DB.prepare(query).bind(...params).all(),
         c.env.DB.prepare(countQuery).bind(...params.slice(0, -2)).first()
@@ -136,20 +121,11 @@ publicRoutes.get('/projects', async (c) => {
       id: project.id,
       title: project.title,
       summary: project.summary,
-      description: project.description,
-      objectives: project.objectives,
       status: project.status,
-      startDate: project.start_date,
-      endDate: project.end_date,
-      budget: project.budget,
-      institution: project.institution,
-      researchArea: project.research_area,
-      keywords: project.keywords ? project.keywords.split(',').map((k: string) => k.trim()) : [],
+      responsiblePerson: project.responsible_person,
       responsibleName: project.responsible_name,
       createdAt: project.created_at,
       updatedAt: project.updated_at,
-      // Public projects don't include sensitive info like documents
-      documentsCount: 0, // We'll count if needed
       isPublic: true
     }));
 

@@ -1702,3 +1702,375 @@ select.form-input {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================ */
+/* Admin Pages - Roles & Permissions Styles   */
+/* ============================================ */
+
+/* Tab system styling */
+.tab-button {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+  color: var(--primary) !important;
+}
+
+.tab-button.active {
+  color: var(--primary) !important;
+  border-bottom-color: var(--primary) !important;
+}
+
+.tab-content {
+  animation: fadeInTab 0.3s ease-in-out;
+}
+
+@keyframes fadeInTab {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Role color indicators */
+.bg-purple-100 { background-color: oklch(from var(--primary) calc(l + 0.3) calc(c * 0.3) h); }
+.text-purple-600 { color: var(--primary); }
+.bg-red-100 { background-color: oklch(from var(--destructive) calc(l + 0.3) calc(c * 0.3) h); }
+.text-red-600 { color: var(--destructive); }
+.bg-blue-100 { background-color: oklch(from var(--chart-1) calc(l + 0.3) calc(c * 0.3) h); }
+.text-blue-600 { color: var(--chart-1); }
+.bg-green-100 { background-color: oklch(from var(--accent) calc(l + 0.3) calc(c * 0.3) h); }
+.text-green-600 { color: var(--accent); }
+.bg-yellow-100 { background-color: oklch(0.9 0.1 85); }
+.text-yellow-600 { color: oklch(0.6 0.15 85); }
+.bg-gray-100 { background-color: var(--muted); }
+.text-gray-600 { color: var(--muted-foreground); }
+
+/* Permission matrix styling */
+.permissions-matrix {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.permissions-matrix table {
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.permissions-matrix th {
+  background-color: var(--muted);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.permissions-matrix td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.permissions-matrix tr:hover {
+  background-color: oklch(from var(--muted) calc(l + 0.02) c h);
+}
+
+/* Checkbox styling in permissions matrix */
+.form-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--background);
+  transition: all 0.2s ease;
+}
+
+.form-checkbox:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l6.646-6.647a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e");
+}
+
+.form-checkbox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Role cards styling */
+.role-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.role-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--primary);
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Action buttons in tables */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.action-btn {
+  padding: 0.5rem;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn:hover {
+  background-color: var(--muted);
+  transform: scale(1.1);
+}
+
+/* Success and error colors */
+.btn-success {
+  background-color: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: oklch(from var(--accent) calc(l - 0.1) c h);
+  border-color: oklch(from var(--accent) calc(l - 0.1) c h);
+}
+
+.btn-warning {
+  background-color: oklch(0.7 0.15 85);
+  color: oklch(0.2 0 0);
+  border-color: oklch(0.7 0.15 85);
+}
+
+.btn-warning:hover:not(:disabled) {
+  background-color: oklch(0.6 0.15 85);
+  border-color: oklch(0.6 0.15 85);
+  color: white;
+}
+
+.btn-info {
+  background-color: var(--chart-1);
+  color: white;
+  border-color: var(--chart-1);
+}
+
+.btn-info:hover:not(:disabled) {
+  background-color: oklch(from var(--chart-1) calc(l - 0.1) c h);
+  border-color: oklch(from var(--chart-1) calc(l - 0.1) c h);
+}
+
+.btn-danger {
+  background-color: var(--destructive);
+  color: white;
+  border-color: var(--destructive);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: oklch(from var(--destructive) calc(l - 0.1) c h);
+  border-color: oklch(from var(--destructive) calc(l - 0.1) c h);
+}
+
+/* ============================================ */
+/* Admin Pages - System Logs Styles            */
+/* ============================================ */
+
+/* Log level indicators */
+.log-level-ERROR { 
+  background-color: oklch(from var(--destructive) calc(l + 0.3) calc(c * 0.3) h);
+  color: var(--destructive);
+}
+
+.log-level-WARN { 
+  background-color: oklch(0.9 0.1 85);
+  color: oklch(0.5 0.15 85);
+}
+
+.log-level-INFO { 
+  background-color: oklch(from var(--chart-1) calc(l + 0.3) calc(c * 0.3) h);
+  color: var(--chart-1);
+}
+
+.log-level-DEBUG { 
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.log-level-FATAL { 
+  background-color: oklch(from var(--primary) calc(l + 0.3) calc(c * 0.3) h);
+  color: var(--primary);
+}
+
+/* Logs table styling */
+.logs-table {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.logs-table th {
+  position: sticky;
+  top: 0;
+  background-color: var(--muted);
+  z-index: 10;
+}
+
+.logs-table tr:hover {
+  background-color: oklch(from var(--muted) calc(l + 0.02) c h);
+}
+
+.log-message {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-timestamp {
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+/* Statistics cards for logs */
+.log-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* Filter controls styling */
+.filter-controls {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Export buttons styling */
+.export-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Responsive improvements for admin pages */
+@media (max-width: 768px) {
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .filter-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .export-buttons {
+    justify-content: center;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+  }
+  
+  .permissions-matrix {
+    font-size: 0.75rem;
+  }
+  
+  .logs-table {
+    font-size: 0.75rem;
+  }
+  
+  .log-message {
+    max-width: 150px;
+  }
+}
+
+/* Print styles for admin pages */
+@media print {
+  .filter-controls,
+  .export-buttons,
+  .action-buttons {
+    display: none !important;
+  }
+  
+  .permissions-matrix,
+  .logs-table {
+    font-size: 0.7rem !important;
+  }
+  
+  .tab-button {
+    display: none !important;
+  }
+  
+  .tab-content {
+    display: block !important;
+  }
+}

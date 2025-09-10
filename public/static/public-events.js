@@ -67,7 +67,7 @@ class PublicEvents {
 
   async loadEventCategories() {
     try {
-      const response = await axios.get('/api/public/events/categories');
+      const response = await axios.get('/public-api/events/categories');
       if (response.data.success) {
         this.categories = response.data.data;
       }
@@ -78,7 +78,7 @@ class PublicEvents {
 
   async loadFeaturedEvents() {
     try {
-      const response = await axios.get('/api/public/events/featured', {
+      const response = await axios.get('/public-api/events/featured', {
         params: { limit: 3 }
       });
       if (response.data.success) {
@@ -91,7 +91,7 @@ class PublicEvents {
 
   async loadEventsStats() {
     try {
-      const response = await axios.get('/api/public/events/stats');
+      const response = await axios.get('/public-api/events/stats');
       if (response.data.success) {
         this.renderEventsStats(response.data.data);
       }
@@ -102,7 +102,7 @@ class PublicEvents {
 
   async loadUpcomingEvents() {
     try {
-      const response = await axios.get('/api/public/events/upcoming', {
+      const response = await axios.get('/public-api/events/upcoming', {
         params: { limit: 5 }
       });
       if (response.data.success) {
@@ -126,7 +126,7 @@ class PublicEvents {
         offset: (this.currentPage - 1) * this.pageSize
       };
 
-      const response = await axios.get('/api/public/events', { params });
+      const response = await axios.get('/public-api/events', { params });
       
       if (response.data.success) {
         this.events = response.data.data.events;
@@ -666,7 +666,7 @@ class PublicEvents {
 
   async showEventModal(eventSlug) {
     try {
-      const response = await axios.get(`/api/public/events/${eventSlug}`);
+      const response = await axios.get(`/public-api/events/${eventSlug}`);
       if (response.data.success) {
         this.renderEventModal(response.data.data);
       }
@@ -945,7 +945,7 @@ class PublicEvents {
   async showRegistrationModal(eventSlug) {
     try {
       // First check if user is already registered
-      const statusResponse = await axios.get(`/api/public/events/${eventSlug}/registration-status`);
+      const statusResponse = await axios.get(`/public-api/events/${eventSlug}/registration-status`);
       
       if (statusResponse.data.success) {
         const status = statusResponse.data.data;
@@ -962,7 +962,7 @@ class PublicEvents {
       }
       
       // Load event details for registration form
-      const eventResponse = await axios.get(`/api/public/events/${eventSlug}`);
+      const eventResponse = await axios.get(`/public-api/events/${eventSlug}`);
       if (eventResponse.data.success) {
         this.renderRegistrationModal(eventResponse.data.data);
       }
@@ -1155,7 +1155,7 @@ class PublicEvents {
     }
     
     try {
-      const response = await axios.post(`/api/public/events/${eventSlug}/register`, registrationData);
+      const response = await axios.post(`/public-api/events/${eventSlug}/register`, registrationData);
       
       if (response.data.success) {
         this.showNotification('¡Registro exitoso! Recibirás un correo de confirmación', 'success');

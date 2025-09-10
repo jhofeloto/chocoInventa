@@ -120,7 +120,7 @@ const PublicNews = {
   // Load categories for filters
   async loadCategories() {
     try {
-      const response = await axios.get('/api/public/news/categories');
+      const response = await axios.get('/public-api/news/categories');
       
       if (response.data.success) {
         this.categories = response.data.categories;
@@ -149,7 +149,7 @@ const PublicNews = {
   // Load featured news for hero section
   async loadFeaturedNews() {
     try {
-      const response = await axios.get('/api/public/news/featured?limit=3');
+      const response = await axios.get('/public-api/news/featured?limit=3');
       
       if (response.data.success && response.data.articles.length > 0) {
         this.renderFeaturedNews(response.data.articles);
@@ -162,7 +162,7 @@ const PublicNews = {
   // Load recent news for sidebar
   async loadRecentNews() {
     try {
-      const response = await axios.get('/api/public/news/recent?limit=5');
+      const response = await axios.get('/public-api/news/recent?limit=5');
       
       if (response.data.success) {
         this.renderRecentNews(response.data.articles);
@@ -185,7 +185,7 @@ const PublicNews = {
         order: this.filters.order
       });
 
-      const response = await axios.get(`/api/public/news?${params}`);
+      const response = await axios.get(`/public-api/news?${params}`);
 
       if (response.data.success) {
         this.renderNewsArticles(response.data.articles);
@@ -484,7 +484,7 @@ const PublicNews = {
   // View article in modal
   async viewArticle(slug) {
     try {
-      const response = await axios.get(`/api/public/news/${slug}`);
+      const response = await axios.get(`/public-api/news/${slug}`);
       
       if (response.data.success) {
         this.showArticleModal(response.data.article);

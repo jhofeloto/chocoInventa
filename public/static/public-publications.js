@@ -62,7 +62,7 @@ class PublicationsPortal {
         }
       }
 
-      const response = await axios.get(`/api/publications?${queryParams}`);
+      const response = await axios.get(`/public-apiations?${queryParams}`);
       
       if (response.data.success) {
         this.publications = response.data.data.publications;
@@ -85,7 +85,7 @@ class PublicationsPortal {
 
   async loadStats() {
     try {
-      const response = await axios.get('/api/publications/stats');
+      const response = await axios.get('/public-apiations/stats');
       
       if (response.data.success) {
         this.stats = response.data.data;
@@ -103,7 +103,7 @@ class PublicationsPortal {
     }
 
     try {
-      const response = await axios.get('/api/publications/search', {
+      const response = await axios.get('/public-apiations/search', {
         params: {
           query: query,
           limit: this.itemsPerPage,
@@ -743,13 +743,13 @@ class PublicationsPortal {
       `;
 
       // Load publication details
-      const response = await axios.get(`/api/publications/${publicationId}`);
+      const response = await axios.get(`/public-apiations/${publicationId}`);
       
       if (response.data.success) {
         this.currentPublication = response.data.data;
         
         // Load citation formats
-        const citationResponse = await axios.get(`/api/publications/${publicationId}/citation`);
+        const citationResponse = await axios.get(`/public-apiations/${publicationId}/citation`);
         let citations = [];
         if (citationResponse.data.success) {
           citations = citationResponse.data.data.citations;

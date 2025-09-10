@@ -98,10 +98,10 @@ const PublicPortal = {
 
       console.log('Loading public projects with params:', params.toString());
 
-      const response = await axios.get(`/api/public/projects?${params}`);
+      const response = await axios.get(`/public-api/projects?${params}`);
       
       if (response.data.success) {
-        this.renderPublicProjects(response.data.projects);
+        this.renderPublicProjects(response.data.data);
         this.renderPagination(response.data);
         this.updateResultsInfo(response.data);
       } else {
@@ -116,7 +116,7 @@ const PublicPortal = {
   // Load public statistics
   async loadPublicStats() {
     try {
-      const response = await axios.get('/api/public/stats');
+      const response = await axios.get('/public-api/stats');
       
       if (response.data.success) {
         this.renderPublicStats(response.data.stats);
@@ -420,7 +420,7 @@ const PublicPortal = {
   // View project details
   async viewProjectDetails(projectId) {
     try {
-      const response = await axios.get(`/api/public/projects/${projectId}`);
+      const response = await axios.get(`/public-api/projects/${projectId}`);
       
       if (response.data.success) {
         this.showProjectModal(response.data.project);

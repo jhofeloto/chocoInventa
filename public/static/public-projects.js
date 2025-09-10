@@ -79,7 +79,7 @@ const PublicProjects = {
   async loadStats() {
     try {
       console.log('Loading public statistics...');
-      const response = await axios.get('/api/public/stats');
+      const response = await axios.get('/public-api/stats');
       
       if (response.data.success) {
         this.stats = response.data.stats;
@@ -112,7 +112,7 @@ const PublicProjects = {
         }
       });
 
-      const response = await axios.get(`/api/public/projects?${params}`);
+      const response = await axios.get(`/public-api/projects?${params}`);
       
       if (response.data.success) {
         this.projects = response.data.projects;
