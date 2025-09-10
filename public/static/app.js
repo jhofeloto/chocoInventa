@@ -1622,17 +1622,17 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM loaded, initializing app...');
   console.log('✅ window.App exposed globally:', typeof window.App);
   
-  // Skip App.init for admin pages
+  // Skip App.init for admin pages and dashboard control panel
   const currentPath = window.location.pathname;
-  if (currentPath.startsWith('/admin/')) {
-    console.log('Skipping App.init() for admin page:', currentPath);
+  if (currentPath.startsWith('/admin/') || currentPath === '/dashboard') {
+    console.log('Skipping App.init() for admin/dashboard page:', currentPath);
   } else {
     App.init();
   }
   
   // Initialize notification system after app initialization
   setTimeout(() => {
-    const token = localStorage.getItem('codecti-token') || localStorage.getItem('codecti_token');
+    const token = localStorage.getItem('codecti_token');
     if (token && typeof NotificationSystem !== 'undefined') {
       console.log('Initializing notification system...');
       window.notificationSystem = new NotificationSystem();

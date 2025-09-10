@@ -33,20 +33,41 @@ class DashboardControl {
 
   async checkAuthentication() {
     try {
-      // This would typically check for JWT token or session
-      // For now, simulate authentication check
-      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      // Use the same token key as the main system
+      const token = localStorage.getItem('codecti_token');
       
       if (!token) {
-        console.log('No authentication token found');
+        console.log('No CODECTI authentication token found');
         this.isAuthenticated = false;
         return;
       }
 
-      // Verify token with server (placeholder for now)
-      // In real implementation, validate with /api/auth/verify
-      this.isAuthenticated = true;
-      console.log('User is authenticated');
+      // Verify token with server using the main system's auth endpoint
+      try {
+        const response = await axios.post('/api/auth/verify', {}, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.data.success) {
+          this.isAuthenticated = true;
+          this.currentUser = response.data.user;
+          console.log('User is authenticated:', this.currentUser);
+          
+          // Set axios default header for future requests
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        } else {
+          console.log('Token verification failed');
+          this.isAuthenticated = false;
+        }
+      } catch (verifyError) {
+        console.error('Token verification error:', verifyError);
+        this.isAuthenticated = false;
+        // Clear invalid token
+        localStorage.removeItem('codecti_token');
+      }
+      
     } catch (error) {
       console.error('Authentication check failed:', error);
       this.isAuthenticated = false;
@@ -55,12 +76,32 @@ class DashboardControl {
 
   async loadUserRole() {
     try {
-      // For now, simulate getting user role from localStorage
-      // In real implementation, this would come from JWT or API call
-      const storedRole = localStorage.getItem('user_role') || 'admin'; // Default to admin for testing
-      
-      this.userRole = storedRole;
-      console.log('User role loaded:', this.userRole);
+      // Get role from authenticated user data
+      if (this.currentUser && this.currentUser.role) {
+        this.userRole = this.currentUser.role;
+        console.log('User role loaded from auth:', this.userRole);
+      } else {
+        // Fallback: try to verify token again to get user info
+        const token = localStorage.getItem('codecti_token');
+        if (token) {
+          try {
+            const response = await axios.post('/api/auth/verify', {}, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (response.data.success) {
+              this.currentUser = response.data.user;
+              this.userRole = this.currentUser.role;
+              console.log('User role loaded from token verification:', this.userRole);
+            }
+          } catch (apiError) {
+            console.error('Error getting user info from token verification:', apiError);
+            this.userRole = 'researcher'; // Default fallback
+          }
+        }
+      }
       
       // Update display
       const roleDisplay = document.getElementById('user-role-display');
@@ -75,7 +116,7 @@ class DashboardControl {
       
     } catch (error) {
       console.error('Error loading user role:', error);
-      this.userRole = null;
+      this.userRole = 'researcher'; // Default fallback
     }
   }
 
