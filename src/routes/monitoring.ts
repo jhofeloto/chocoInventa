@@ -126,7 +126,13 @@ monitoring.get('/admin/logs', async (c) => {
     const limit = parseInt(c.req.query('limit') || '100');
     const search = c.req.query('search');
     
-    const logs = logger.getLogs(level, context, limit, search);
+    const logs = logger.getLogs({
+      level,
+      component: context,
+      search,
+      limit,
+      offset: 0
+    });
     
     return c.json({
       success: true,

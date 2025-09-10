@@ -75,7 +75,13 @@ export interface Project {
   title: string;
   responsible_person: string;
   summary: string;
+  description?: string;
   status: 'active' | 'completed';
+  area?: string;
+  start_date?: string;
+  end_date?: string;
+  budget?: number;
+  institution?: string;
   document_filename?: string;
   document_url?: string;
   document_size?: number;
@@ -84,6 +90,7 @@ export interface Project {
   created_at: string;
   updated_at: string;
   creator_name?: string;
+  creator_institution?: string;
 }
 
 export interface CreateProjectRequest {
@@ -181,5 +188,63 @@ export interface SystemMetrics {
 export interface MonitoringResponse {
   success: boolean;
   data?: any;
+  message?: string;
+}
+
+// Public Portal Types - HU-08: Portal Público de Proyectos
+export interface PublicProject {
+  id: number;
+  title: string;
+  summary: string;
+  description?: string;
+  status: 'active' | 'completed';
+  area?: string;
+  start_date?: string;
+  end_date?: string;
+  budget?: number;
+  institution?: string;
+  responsible_person: string;
+  created_at: string;
+  updated_at?: string;
+  creator_name?: string;
+  creator_institution?: string;
+  has_documents?: boolean;
+  // Note: document_url is intentionally excluded for security
+}
+
+export interface PublicProjectsResponse {
+  success: boolean;
+  projects: PublicProject[];
+  total: number;
+  page: number;
+  totalPages: number;
+  limit: number;
+  message?: string;
+}
+
+export interface PublicProjectResponse {
+  success: boolean;
+  project?: PublicProject;
+  message?: string;
+}
+
+export interface PublicStats {
+  total_projects: number;
+  active_projects: number;
+  completed_projects: number;
+  total_budget: number;
+  by_area: Record<string, number>;
+  by_institution: Record<string, number>;
+  recent_projects: {
+    id: number;
+    title: string;
+    institution?: string;
+    created_at: string;
+  }[];
+}
+
+export interface PublicStatsResponse {
+  success: boolean;
+  stats: PublicStats;
   message?: string;
 }

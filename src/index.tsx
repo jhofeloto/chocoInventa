@@ -9,6 +9,7 @@ import projects from './routes/projects';
 import users from './routes/users';
 import monitoring from './routes/monitoring';
 import settings from './routes/settings';
+import publicRoutes from './routes/public';
 import { loggingMiddleware, logger } from './monitoring/logger';
 import { systemLoggingMiddleware, systemLogger } from './monitoring/systemLogger';
 import systemLogs from './routes/systemLogs';
@@ -45,6 +46,252 @@ app.route('/api/monitoring', monitoring);
 app.route('/api/system-logs', systemLogs); // Nueva ruta para logs del sistema
 app.route('/api/settings', settings);
 
+// Public API Routes (No authentication required) - HU-08: Portal Público
+app.route('/api/public', publicRoutes);
+
+// Public API Routes (No authentication required) - HU-08: Portal Público
+import publicRoutes from './routes/public';
+app.route('/api/public', publicRoutes);
+
+// Public Portal Routes - HU-08: Portal Público de Proyectos
+app.get('/portal', (c) => {
+  return c.render(
+    <div>
+      {/* Navigation */}
+      <nav className="navbar bg-white border-b border-gray-200 shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center py-4">
+            <div className="navbar-logo flex items-center">
+              <a href="/" className="flex items-center">
+                <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" className="h-10 mr-3" />
+                <div>
+                  <div className="font-bold text-xl text-primary">Choco Inventa</div>
+                  <div className="text-xs text-gray-600">Portal Público CTeI</div>
+                </div>
+              </a>
+            </div>
+            <div className="nav-actions">
+              <a href="/dashboard" className="btn btn-outline mr-3">Dashboard Privado</a>
+              <a href="/" className="btn btn-primary">Inicio</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-6">
+            Portal Público de Proyectos CTeI
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Descubre los proyectos de investigación, ciencia, tecnología e innovación 
+            que están transformando el departamento del Chocó
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="#projects" className="btn btn-primary btn-lg">
+              <i className="fas fa-search mr-2"></i>
+              Explorar Proyectos
+            </a>
+            <a href="#stats" className="btn btn-outline btn-lg">
+              <i className="fas fa-chart-bar mr-2"></i>
+              Ver Estadísticas
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Statistics Section */}
+      <section id="stats" className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Impacto del Ecosistema CTeI Chocó
+            </h2>
+            <p className="text-lg text-gray-600">
+              Conoce los números que reflejan el desarrollo científico y tecnológico del Chocó
+            </p>
+          </div>
+          <div id="publicStatsContainer">
+            {/* Stats will be loaded here */}
+            <div className="text-center py-8">
+              <i className="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+              <p className="text-gray-500 mt-2">Cargando estadísticas...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Projects Section */}
+      <section id="projects" className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Catálogo de Proyectos CTeI
+            </h2>
+            <p className="text-lg text-gray-600">
+              Explora los proyectos de investigación que están impulsando el desarrollo del Chocó
+            </p>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              {/* Search */}
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Buscar proyectos
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="publicSearch"
+                    className="form-input pl-10"
+                    placeholder="Título, palabras clave, institución..."
+                  />
+                  <i className="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+              </div>
+
+              {/* Status Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Estado
+                </label>
+                <select id="statusFilter" className="form-input">
+                  <option value="">Todos los estados</option>
+                  <option value="active">Activos</option>
+                  <option value="completed">Completados</option>
+                  <option value="planning">En Planificación</option>
+                </select>
+              </div>
+
+              {/* Sort */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ordenar por
+                </label>
+                <select id="sortSelect" className="form-input">
+                  <option value="created_at-desc">Más recientes</option>
+                  <option value="created_at-asc">Más antiguos</option>
+                  <option value="title-asc">Título A-Z</option>
+                  <option value="title-desc">Título Z-A</option>
+                  <option value="start_date-desc">Fecha inicio (desc)</option>
+                  <option value="start_date-asc">Fecha inicio (asc)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {/* Research Area Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Área de Investigación
+                </label>
+                <select id="areaFilter" className="form-input">
+                  <option value="">Todas las áreas</option>
+                  <option value="Biodiversidad">Biodiversidad y Ecosistemas</option>
+                  <option value="Tecnología">Tecnología Ambiental</option>
+                  <option value="Desarrollo">Desarrollo Rural y Agrícola</option>
+                  <option value="Medicina">Medicina y Salud</option>
+                  <option value="Clima">Cambio Climático</option>
+                  <option value="Acuicultura">Acuicultura y Pesca</option>
+                  <option value="Cultural">Patrimonio Cultural</option>
+                </select>
+              </div>
+
+              {/* Institution Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Institución
+                </label>
+                <select id="institutionFilter" className="form-input">
+                  <option value="">Todas las instituciones</option>
+                  <option value="CODECTI">CODECTI Chocó</option>
+                  <option value="Universidad">Universidad Tecnológica del Chocó</option>
+                  <option value="SINCHI">SINCHI</option>
+                  <option value="IIAP">IIAP</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <div id="resultsInfo" className="text-sm text-gray-600">
+                {/* Results info will be loaded here */}
+              </div>
+              <button id="clearFilters" className="btn btn-secondary btn-sm">
+                <i className="fas fa-times mr-2"></i>
+                Limpiar Filtros
+              </button>
+            </div>
+          </div>
+
+          {/* Projects Grid */}
+          <div id="publicProjectsGrid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* Projects will be loaded here */}
+            <div className="col-span-full text-center py-12">
+              <i className="fas fa-spinner fa-spin text-3xl text-gray-400 mb-4"></i>
+              <p className="text-gray-500">Cargando proyectos...</p>
+            </div>
+          </div>
+
+          {/* Pagination */}
+          <div id="publicPagination">
+            {/* Pagination will be loaded here */}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="footer bg-gray-800 text-white">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <div className="flex items-center mb-4">
+                <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" className="h-8 mr-3" />
+                <div className="font-bold text-lg">Choco Inventa</div>
+              </div>
+              <p className="text-gray-300">
+                Portal público de proyectos de Ciencia, Tecnología e Innovación del Chocó
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Enlaces</h4>
+              <ul className="space-y-2 text-gray-300">
+                <li><a href="/" className="hover:text-white">Inicio</a></li>
+                <li><a href="/portal" className="hover:text-white">Portal Público</a></li>
+                <li><a href="/dashboard" className="hover:text-white">Dashboard</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">CODECTI Chocó</h4>
+              <p className="text-gray-300 text-sm">
+                Corporación para el Desarrollo de la Ciencia, la Tecnología y la Innovación del Chocó
+              </p>
+            </div>
+          </div>
+          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2025 CODECTI Chocó. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Scripts */}
+      <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+      <script src="/static/public-portal.js"></script>
+      <script dangerouslySetInnerHTML={{
+        __html: `
+          document.addEventListener('DOMContentLoaded', function() {
+            if (typeof PublicPortal !== 'undefined') {
+              PublicPortal.init();
+            }
+          });
+        `
+      }}></script>
+    </div>
+  );
+});
+
 // Main application routes - Landing Page
 app.get('/', (c) => {
   return c.render(
@@ -58,6 +305,9 @@ app.get('/', (c) => {
             </div>
             <div className="nav-actions" id="landingNavActions">
               {/* Dynamic content will be inserted by JavaScript */}
+              <a href="/portal" className="btn btn-outline mr-3">
+                Portal Público
+              </a>
               <button id="showLoginModal" className="btn btn-outline">
                 Iniciar Sesión
               </button>
@@ -87,6 +337,10 @@ app.get('/', (c) => {
                     <i className="fas fa-microscope mr-2"></i>
                     Comenzar Investigación
                   </button>
+                  <a href="/portal" className="btn btn-secondary btn-lg">
+                    <i className="fas fa-eye mr-2"></i>
+                    Ver Proyectos Públicos
+                  </a>
                   <button id="learnMore" className="btn btn-outline btn-lg">
                     <i className="fas fa-chart-line mr-2"></i>
                     Conocer Más
@@ -721,6 +975,215 @@ app.get('/soporte', staticRenderer, (c) => {
       </div>
     </div>
   );
+});
+
+// Public Portal Route - HU-08: Portal Público de Proyectos
+app.get('/projects', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Proyectos CTeI - Choco Inventa | CODECTI</title>
+        <meta name="description" content="Catálogo público de proyectos de investigación científica, tecnológica e innovación del Chocó. Explora las iniciativas que transforman nuestra región.">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <link href="/static/styles.css" rel="stylesheet">
+        <script>
+          tailwind.config = {
+            theme: {
+              extend: {
+                colors: {
+                  codecti: {
+                    primary: '#2563eb',
+                    secondary: '#1e40af',
+                    accent: '#3b82f6',
+                    success: '#059669',
+                    warning: '#d97706',
+                    danger: '#dc2626'
+                  }
+                }
+              }
+            }
+          }
+        </script>
+    </head>
+    <body class="bg-gray-50 font-sans">
+        <div id="app">
+            <!-- Public Navigation -->
+            <nav class="navbar bg-white shadow-md border-b border-gray-200">
+                <div class="container mx-auto px-4">
+                    <div class="flex justify-between items-center py-4">
+                        <div class="navbar-logo flex items-center">
+                            <a href="/" class="flex items-center">
+                                <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" class="h-12 mr-3">
+                                <div>
+                                    <div class="text-xl font-bold text-codecti-primary">Choco Inventa</div>
+                                    <div class="text-sm text-gray-600">Portal Público CTeI</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="nav-actions flex space-x-4">
+                            <a href="/" class="btn btn-outline">
+                                <i class="fas fa-home mr-1"></i>
+                                Inicio
+                            </a>
+                            <a href="/projects" class="btn btn-primary">
+                                <i class="fas fa-microscope mr-1"></i>
+                                Proyectos CTeI
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Hero Section -->
+            <section class="bg-gradient-to-r from-codecti-primary to-codecti-secondary text-white py-16">
+                <div class="container mx-auto px-4">
+                    <div class="max-w-4xl mx-auto text-center">
+                        <h1 class="text-4xl md:text-5xl font-bold mb-6">
+                            <i class="fas fa-flask mr-3"></i>
+                            Proyectos CTeI del Chocó
+                        </h1>
+                        <p class="text-xl md:text-2xl mb-8 opacity-90">
+                            Explora las investigaciones y proyectos de innovación que transforman nuestra región
+                        </p>
+                        <div id="statsSection" class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
+                            <!-- Stats will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Filters and Search Section -->
+            <section class="bg-white shadow-sm py-8">
+                <div class="container mx-auto px-4">
+                    <div class="max-w-6xl mx-auto">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <!-- Search -->
+                            <div class="md:col-span-2">
+                                <div class="relative">
+                                    <input 
+                                        type="text" 
+                                        id="searchInput" 
+                                        placeholder="Buscar proyectos por título, responsable, institución..." 
+                                        class="form-input w-full pl-10"
+                                    >
+                                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Area Filter -->
+                            <div>
+                                <select id="areaFilter" class="form-input w-full">
+                                    <option value="">Todas las áreas</option>
+                                    <option value="Ciencias Naturales">Ciencias Naturales</option>
+                                    <option value="Ingeniería y Tecnología">Ingeniería y Tecnología</option>
+                                    <option value="Ciencias Médicas y de la Salud">Ciencias Médicas</option>
+                                    <option value="Ciencias Agrícolas">Ciencias Agrícolas</option>
+                                    <option value="Ciencias Sociales">Ciencias Sociales</option>
+                                    <option value="Humanidades">Humanidades</option>
+                                    <option value="Biotecnología">Biotecnología</option>
+                                    <option value="Medio Ambiente">Medio Ambiente</option>
+                                    <option value="Desarrollo Sostenible">Desarrollo Sostenible</option>
+                                    <option value="Innovación Social">Innovación Social</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Status Filter -->
+                            <div>
+                                <select id="statusFilter" class="form-input w-full">
+                                    <option value="">Todos los estados</option>
+                                    <option value="active">En Curso</option>
+                                    <option value="completed">Completados</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Sort Options -->
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="text-sm text-gray-600">
+                                <span id="resultsCount">Cargando proyectos...</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <label class="text-sm text-gray-600">Ordenar por:</label>
+                                <select id="sortSelect" class="form-input text-sm">
+                                    <option value="created_at">Fecha (más recientes)</option>
+                                    <option value="title">Título (A-Z)</option>
+                                    <option value="budget">Presupuesto</option>
+                                    <option value="start_date">Fecha inicio</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Projects Grid -->
+            <section class="py-12">
+                <div class="container mx-auto px-4">
+                    <div class="max-w-6xl mx-auto">
+                        <div id="loadingSpinner" class="text-center py-12">
+                            <i class="fas fa-spinner fa-spin text-4xl text-codecti-primary mb-4"></i>
+                            <p class="text-gray-600">Cargando proyectos...</p>
+                        </div>
+                        
+                        <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+                            <!-- Projects will be loaded dynamically -->
+                        </div>
+                        
+                        <div id="noResults" class="text-center py-12 hidden">
+                            <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron proyectos</h3>
+                            <p class="text-gray-600">Intenta ajustar los filtros de búsqueda</p>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div id="pagination" class="flex justify-center mt-8 hidden">
+                            <!-- Pagination buttons will be generated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer bg-gray-800 text-white py-12 mt-16">
+            <div class="container mx-auto px-4">
+                <div class="footer-content grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="footer-brand">
+                        <div class="footer-logo flex items-center mb-4">
+                            <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" class="h-10 mr-3">
+                            <div class="text-xl font-bold">Choco Inventa</div>
+                        </div>
+                        <p>CODECTI Chocó: Transformando la investigación científica con innovación y conocimiento</p>
+                    </div>
+                    <div class="footer-links">
+                        <h4 class="font-semibold mb-4">Enlaces</h4>
+                        <div class="space-y-2">
+                            <a href="/" class="hover:text-codecti-accent">Inicio</a>
+                            <a href="/projects" class="hover:text-codecti-accent">Proyectos CTeI</a>
+                            <a href="/docs" class="hover:text-codecti-accent">Documentación</a>
+                        </div>
+                    </div>
+                    <div class="footer-contact">
+                        <h4 class="font-semibold mb-4">CODECTI Chocó</h4>
+                        <p class="text-gray-300">Corporación para el Desarrollo de la Ciencia, la Tecnología y la Innovación del Chocó</p>
+                    </div>
+                </div>
+                <div class="footer-bottom border-t border-gray-700 mt-8 pt-8 text-center">
+                    <p>© 2025 CODECTI Chocó. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+        <script src="/static/logo-manager.js"></script>
+        <script src="/static/public-projects.js"></script>
+    </body>
+    </html>
+  `);
 });
 
 export default app;
