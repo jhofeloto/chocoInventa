@@ -10,6 +10,8 @@ import users from './routes/users';
 import monitoring from './routes/monitoring';
 import settings from './routes/settings';
 import publicRoutes from './routes/public';
+import newsRoutes from './routes/news';
+import publicNewsRoutes from './routes/publicNews';
 import { loggingMiddleware, logger } from './monitoring/logger';
 import { systemLoggingMiddleware, systemLogger } from './monitoring/systemLogger';
 import systemLogs from './routes/systemLogs';
@@ -42,16 +44,14 @@ app.use('*', errorHandlerMiddleware());
 app.route('/api/auth', auth);
 app.route('/api/projects', projects);
 app.route('/api/users', users);
+app.route('/api/news', newsRoutes); // HU-09: News/Blog System (Admin)
 app.route('/api/monitoring', monitoring);
 app.route('/api/system-logs', systemLogs); // Nueva ruta para logs del sistema
 app.route('/api/settings', settings);
 
-// Public API Routes (No authentication required) - HU-08: Portal Público
+// Public API Routes (No authentication required) - HU-08: Portal Público, HU-09: Noticias
 app.route('/api/public', publicRoutes);
-
-// Public API Routes (No authentication required) - HU-08: Portal Público
-import publicRoutes from './routes/public';
-app.route('/api/public', publicRoutes);
+app.route('/api/public/news', publicNewsRoutes);
 
 // Public Portal Routes - HU-08: Portal Público de Proyectos
 app.get('/portal', (c) => {
@@ -292,6 +292,236 @@ app.get('/portal', (c) => {
   );
 });
 
+// Public News Routes - HU-09: Sistema de Noticias/Blog
+app.get('/noticias', (c) => {
+  return c.render(
+    <div>
+      {/* Navigation */}
+      <nav className="navbar bg-white border-b border-gray-200 shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center py-4">
+            <div className="navbar-logo flex items-center">
+              <a href="/" className="flex items-center">
+                <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" className="h-10 mr-3" />
+                <div>
+                  <div className="font-bold text-xl text-primary">Choco Inventa</div>
+                  <div className="text-xs text-gray-600">Noticias CTeI</div>
+                </div>
+              </a>
+            </div>
+            <div className="nav-actions">
+              <a href="/portal" className="btn btn-outline mr-3">Portal de Proyectos</a>
+              <a href="/dashboard" className="btn btn-outline mr-3">Dashboard Privado</a>
+              <a href="/" className="btn btn-primary">Inicio</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="min-h-screen bg-gray-50">
+        {/* Hero Section - Featured News */}
+        <section className="hero-section bg-gradient-to-br from-codecti-primary via-codecti-secondary to-codecti-accent py-16">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+                <i className="fas fa-newspaper mr-4"></i>
+                Noticias CTeI
+              </h1>
+              <p className="text-xl text-white opacity-90 max-w-3xl mx-auto leading-relaxed">
+                Mantente informado sobre los últimos avances científicos y tecnológicos del Chocó
+              </p>
+            </div>
+
+            {/* Featured News Container */}
+            <div id="featuredNewsContainer" className="mb-8">
+              <div className="flex items-center justify-center">
+                <i className="fas fa-spinner fa-spin text-white text-2xl"></i>
+                <span className="ml-3 text-white">Cargando noticias destacadas...</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Search and Filters */}
+        <section className="py-8 bg-white border-b">
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                {/* Search Form */}
+                <form id="newsSearchForm" className="flex-1 max-w-md">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="newsSearchInput"
+                      placeholder="Buscar noticias..."
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-codecti-primary focus:border-transparent"
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <i className="fas fa-search text-gray-400"></i>
+                    </div>
+                    <button
+                      type="submit"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      <i className="fas fa-arrow-right text-codecti-primary hover:text-codecti-secondary"></i>
+                    </button>
+                  </div>
+                </form>
+
+                {/* Filters */}
+                <div className="flex flex-wrap items-center space-x-4">
+                  <select id="newsCategoryFilter" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-codecti-primary">
+                    <option value="">Todas las categorías</option>
+                  </select>
+                  
+                  <select id="newsTagFilter" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-codecti-primary">
+                    <option value="">Todas las etiquetas</option>
+                  </select>
+                  
+                  <select id="newsSortFilter" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-codecti-primary">
+                    <option value="published_at_desc">Más recientes</option>
+                    <option value="published_at_asc">Más antiguas</option>
+                    <option value="title_asc">A-Z</option>
+                    <option value="title_desc">Z-A</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Results Count */}
+              <div className="mt-4">
+                <p id="newsResultsCount" className="text-sm text-gray-600">Cargando noticias...</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* News Content */}
+        <section className="py-12">
+          <div className="container mx-auto px-4">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                {/* Main News Grid */}
+                <div className="lg:col-span-3">
+                  <div id="newsContent">
+                    <div id="newsArticlesContainer" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                      <div className="col-span-full text-center py-12">
+                        <i className="fas fa-spinner fa-spin text-codecti-primary text-4xl mb-4"></i>
+                        <p className="text-gray-600">Cargando noticias...</p>
+                      </div>
+                    </div>
+
+                    {/* Pagination */}
+                    <div id="newsPagination"></div>
+                  </div>
+                </div>
+
+                {/* Sidebar */}
+                <div className="lg:col-span-1">
+                  <div className="space-y-6">
+                    {/* Recent News */}
+                    <div id="recentNewsContainer">
+                      <div className="bg-white rounded-lg shadow-md p-6">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">
+                          <i className="fas fa-clock mr-2 text-codecti-primary"></i>
+                          Cargando noticias recientes...
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Quick Links */}
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4">
+                        <i className="fas fa-external-link-alt mr-2 text-codecti-primary"></i>
+                        Enlaces Rápidos
+                      </h3>
+                      <ul className="space-y-3">
+                        <li>
+                          <a href="/portal" className="flex items-center text-codecti-primary hover:text-codecti-secondary transition-colors">
+                            <i className="fas fa-flask mr-2"></i>
+                            Portal de Proyectos
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/dashboard" className="flex items-center text-codecti-primary hover:text-codecti-secondary transition-colors">
+                            <i className="fas fa-chart-line mr-2"></i>
+                            Dashboard Privado
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/" className="flex items-center text-codecti-primary hover:text-codecti-secondary transition-colors">
+                            <i className="fas fa-home mr-2"></i>
+                            Página de Inicio
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Article Modal */}
+      <div id="articleModal" className="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div id="articleModalContent">
+          {/* Content will be dynamically inserted */}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <div className="flex items-center mb-4">
+                <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" className="h-8 mr-3" />
+                <div className="font-bold text-lg">Choco Inventa</div>
+              </div>
+              <p className="text-gray-300">
+                Portal de noticias de Ciencia, Tecnología e Innovación del Chocó
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Enlaces</h4>
+              <ul className="space-y-2 text-gray-300">
+                <li><a href="/" className="hover:text-white">Inicio</a></li>
+                <li><a href="/noticias" className="hover:text-white">Noticias CTeI</a></li>
+                <li><a href="/portal" className="hover:text-white">Portal de Proyectos</a></li>
+                <li><a href="/dashboard" className="hover:text-white">Dashboard</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">CODECTI Chocó</h4>
+              <p className="text-gray-300 text-sm">
+                Corporación para el Desarrollo de la Ciencia, la Tecnología y la Innovación del Chocó
+              </p>
+            </div>
+          </div>
+          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2025 CODECTI Chocó. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Scripts */}
+      <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+      <script src="/static/public-news.js"></script>
+      <script dangerouslySetInnerHTML={{
+        __html: `
+          document.addEventListener('DOMContentLoaded', function() {
+            if (typeof PublicNews !== 'undefined') {
+              PublicNews.init();
+            }
+          });
+        `
+      }}></script>
+    </div>
+  );
+});
+
 // Main application routes - Landing Page
 app.get('/', (c) => {
   return c.render(
@@ -306,7 +536,10 @@ app.get('/', (c) => {
             <div className="nav-actions" id="landingNavActions">
               {/* Dynamic content will be inserted by JavaScript */}
               <a href="/portal" className="btn btn-outline mr-3">
-                Portal Público
+                Portal de Proyectos
+              </a>
+              <a href="/noticias" className="btn btn-outline mr-3">
+                Noticias CTeI
               </a>
               <button id="showLoginModal" className="btn btn-outline">
                 Iniciar Sesión

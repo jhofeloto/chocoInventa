@@ -248,3 +248,131 @@ export interface PublicStatsResponse {
   stats: PublicStats;
   message?: string;
 }
+
+// HU-09: Sistema de Noticias/Blog - Type Definitions
+export interface NewsCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  color?: string;
+  created_at: string;
+}
+
+export interface NewsTag {
+  id: number;
+  name: string;
+  slug: string;
+  created_at: string;
+}
+
+export interface NewsArticle {
+  id: number;
+  title: string;
+  slug: string;
+  summary: string;
+  content: string;
+  featured_image?: string;
+  author_id: number;
+  author_name?: string;
+  author_email?: string;
+  category_id: number;
+  category_name?: string;
+  category_slug?: string;
+  status: 'draft' | 'published' | 'archived';
+  is_featured: boolean;
+  tags: NewsTag[];
+  views_count: number;
+  published_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateNewsArticleRequest {
+  title: string;
+  summary: string;
+  content: string;
+  featured_image?: string;
+  category_id: number;
+  tag_ids: number[];
+  status: 'draft' | 'published';
+  is_featured: boolean;
+  published_at?: string;
+}
+
+export interface UpdateNewsArticleRequest {
+  title: string;
+  summary: string;
+  content: string;
+  featured_image?: string;
+  category_id: number;
+  tag_ids: number[];
+  status: 'draft' | 'published' | 'archived';
+  is_featured: boolean;
+  published_at?: string;
+}
+
+export interface NewsListResponse {
+  success: boolean;
+  articles: NewsArticle[];
+  total: number;
+  page: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+  limit: number;
+  message?: string;
+}
+
+export interface NewsArticleResponse {
+  success: boolean;
+  article?: NewsArticle;
+  message?: string;
+}
+
+export interface NewsPublicResponse {
+  success: boolean;
+  articles: {
+    id: number;
+    title: string;
+    slug: string;
+    summary: string;
+    featured_image?: string;
+    author_name: string;
+    category_name: string;
+    category_slug: string;
+    views_count: number;
+    published_at: string;
+    tags: string[];
+  }[];
+  total: number;
+  page: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+  limit: number;
+  message?: string;
+}
+
+export interface PublicNewsArticle {
+  id: number;
+  title: string;
+  slug: string;
+  summary: string;
+  content: string;
+  featured_image?: string;
+  author_name: string;
+  category_name: string;
+  category_slug: string;
+  tags: string[];
+  views_count: number;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PublicNewsArticleResponse {
+  success: boolean;
+  article?: PublicNewsArticle;
+  message?: string;
+}
