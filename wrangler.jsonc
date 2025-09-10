@@ -3,6 +3,5 @@
   "name": "codecti-platform",
   "compatibility_date": "2025-09-09",
   "pages_build_output_dir": "./dist",
-  "compatibility_flags": ["nodejs_compat"],
-  "main": "src/index.tsx"
+  "compatibility_flags": ["nodejs_compat"]
 }
