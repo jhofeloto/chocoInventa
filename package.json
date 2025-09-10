@@ -33,6 +33,7 @@
   "dependencies": {
     "@cloudflare/workers-types": "^4.20250909.0",
     "@hono/vite-cloudflare-pages": "^0.4.2",
+    "bcryptjs": "^3.0.2",
     "hono": "^4.9.6",
     "typescript": "^5.9.2",
     "uuid": "^13.0.0",
