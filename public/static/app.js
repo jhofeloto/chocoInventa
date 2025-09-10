@@ -1426,10 +1426,8 @@ const App = {
 
   navigateToDashboard() {
     console.log('Navigating to dashboard...');
-    window.history.pushState({}, '', '/dashboard');
-    this.currentPath = '/dashboard';
-    // Force full page reload to get proper DOM structure
-    window.location.reload();
+    // Direct navigation to dashboard without reload for better UX
+    window.location.href = '/dashboard';
   },
 
   navigateToAdmin() {

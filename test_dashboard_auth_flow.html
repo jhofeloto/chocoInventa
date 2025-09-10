@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard Auth Flow</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-container { max-width: 800px; margin: 0 auto; }
+        .test-step { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Dashboard Authentication Flow</h1>
+        <p>Este test simula el flujo completo de autenticación y acceso al dashboard.</p>
+        
+        <div id="step1" class="test-step">
+            <h3>Paso 1: Login</h3>
+            <button onclick="testLogin()">Hacer Login</button>
+            <div id="login-result"></div>
+        </div>
+        
+        <div id="step2" class="test-step">
+            <h3>Paso 2: Verificar Token</h3>
+            <button onclick="testTokenVerification()">Verificar Token</button>
+            <div id="token-result"></div>
+        </div>
+        
+        <div id="step3" class="test-step">
+            <h3>Paso 3: Verificar Permisos Dashboard</h3>
+            <button onclick="testDashboardPermissions()">Verificar Permisos</button>
+            <div id="permissions-result"></div>
+        </div>
+        
+        <div id="step4" class="test-step">
+            <h3>Paso 4: Simular localStorage</h3>
+            <button onclick="simulateLocalStorage()">Configurar localStorage</button>
+            <div id="localstorage-result"></div>
+        </div>
+        
+        <div id="step5" class="test-step">
+            <h3>Paso 5: Acceso Dashboard</h3>
+            <button onclick="accessDashboard()">Ir al Dashboard</button>
+            <div id="dashboard-result"></div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = null;
+        let userData = null;
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.innerHTML = '<p>Haciendo login...</p>';
+            
+            try {
+                const response = await axios.post('/api/auth/login', {
+                    email: 'admin@codecti.choco.gov.co',
+                    password: 'password123'
+                });
+                
+                if (response.data.success) {
+                    authToken = response.data.token;
+                    userData = response.data.user;
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Login Exitoso</h4>
+                            <p><strong>Usuario:</strong> ${userData.name}</p>
+                            <p><strong>Rol:</strong> ${userData.role}</p>
+                            <p><strong>Token:</strong> ${authToken.substring(0, 50)}...</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Error: ${response.data.message}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error de conexión: ${error.message}</div>`;
+            }
+        }
+
+        async function testTokenVerification() {
+            const resultDiv = document.getElementById('token-result');
+            
+            if (!authToken) {
+                resultDiv.innerHTML = '<div class="error">❌ Primero debes hacer login</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>Verificando token...</p>';
+            
+            try {
+                const response = await axios.post('/api/auth/verify', {}, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Token Válido</h4>
+                            <pre>${JSON.stringify(response.data.user, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Token inválido: ${response.data.message}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error verificando token: ${error.message}</div>`;
+            }
+        }
+
+        async function testDashboardPermissions() {
+            const resultDiv = document.getElementById('permissions-result');
+            
+            if (!userData) {
+                resultDiv.innerHTML = '<div class="error">❌ Primero debes hacer login</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>Verificando permisos de dashboard...</p>';
+            
+            try {
+                // Map role to role ID
+                const roleMap = { 'admin': 1, 'collaborator': 2, 'researcher': 3 };
+                const roleId = roleMap[userData.role];
+                
+                const response = await axios.get(`/api/dashboard/permissions/${roleId}`);
+                
+                if (response.data.success) {
+                    const permissions = response.data.permissions;
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Permisos Cargados (${permissions.length})</h4>
+                            <ul>
+                                ${permissions.map(p => `<li>${p.display_name}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Error cargando permisos: ${response.data.message}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function simulateLocalStorage() {
+            const resultDiv = document.getElementById('localstorage-result');
+            
+            if (!authToken || !userData) {
+                resultDiv.innerHTML = '<div class="error">❌ Primero debes hacer login</div>';
+                return;
+            }
+            
+            // Simular lo que hace el sistema cuando el usuario está logueado
+            localStorage.setItem('codecti_token', authToken);
+            localStorage.setItem('user_role', userData.role);
+            
+            // Set axios default header
+            axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+            
+            resultDiv.innerHTML = `
+                <div class="success">
+                    <h4>✅ LocalStorage Configurado</h4>
+                    <p><strong>codecti_token:</strong> ${authToken.substring(0, 50)}...</p>
+                    <p><strong>user_role:</strong> ${userData.role}</p>
+                    <p>Axios Authorization header configurado</p>
+                </div>
+            `;
+        }
+
+        function accessDashboard() {
+            const resultDiv = document.getElementById('dashboard-result');
+            
+            const token = localStorage.getItem('codecti_token');
+            if (!token) {
+                resultDiv.innerHTML = '<div class="error">❌ Primero debes configurar localStorage</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="info">
+                    <h4>🚀 Redirigiendo al Dashboard</h4>
+                    <p>Token en localStorage: ✅</p>
+                    <p>Rol de usuario: ${localStorage.getItem('user_role')}</p>
+                    <p>Redirecting en 3 segundos...</p>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
