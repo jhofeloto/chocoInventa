@@ -219,6 +219,22 @@
 - ✅ **Arquitectura preparada para WebSockets** - Estructura base para futuras implementaciones de tiempo real
 - ✅ **Datos de ejemplo realistas** - Plantillas y notificaciones mock configuradas para testing completo
 
+### 🎛️ Panel de Control Centralizado del Dashboard (NUEVO - CRÍTICO)
+- ✅ **Dashboard control unificado** - Panel de control centralizado que integra todas las secciones desarrolladas del sistema
+- ✅ **Control de acceso basado en roles (RBAC)** - Sistema granular de permisos por sección usando la matriz de roles y permisos
+- ✅ **API de permisos dashboard** - Endpoint especializado (/api/dashboard/permissions/:roleId) para verificación de acceso dinámico
+- ✅ **Configuración desde admin/roles** - Gestión completa de permisos de dashboard desde el panel de administración de roles
+- ✅ **Acceso diferenciado por rol** - Administrador (acceso completo), Colaborador (proyectos, noticias, eventos), Investigador (solo proyectos)
+- ✅ **Navegación intuitiva organizada** - Secciones categorizadas: Administración, Proyectos, Noticias, Eventos, Recursos, Analíticas, Utilidades
+- ✅ **Interface moderna responsive** - Diseño con cards, iconos distintivos y efectos hover para cada módulo del sistema
+- ✅ **Verificación de autenticación** - Sistema de verificación de tokens y redirección automática a login si no está autenticado
+- ✅ **Estados visuales dinámicos** - Loading, acceso denegado y dashboard funcional con transiciones suaves
+- ✅ **Migración de permisos** - Base de datos actualizada con 8 permisos específicos para control granular de secciones
+- ✅ **JavaScript dashboard-control.js** - Lógica frontend completa para gestión de permisos y visibilidad de secciones
+- ✅ **Integración con matriz de permisos** - Conexión directa con sistema de roles existente para configuración desde admin panel
+- ✅ **Acceso directo a todas las secciones** - Enlaces directos a: /admin, /admin/roles, /admin/users, /projects, /portal, /noticias, /eventos, /recursos, /analytics, /indicadores, /files, /docs, /soporte
+- ✅ **Sistema de refresh de permisos** - Capacidad de actualizar permisos sin recargar página para reflejar cambios de rol instantáneamente
+
 ## 🚀 URLs de Acceso
 
 - **Landing Page**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev
@@ -226,7 +242,7 @@
 - **Portal de Noticias CTeI**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/noticias
 - **Portal de Eventos**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/eventos
 - **Portal de Recursos**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/recursos
-- **Dashboard**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/dashboard
+- **Panel de Control Dashboard**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/dashboard
 - **Panel Admin**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/admin
 - **Dashboard Analítico**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/analytics
 - **Dashboard de Indicadores CTeI**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/indicadores
@@ -257,6 +273,7 @@
 - **API Preferencias de Notificación**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/preferences
 - **API Plantillas de Notificación**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/templates
 - **API Estadísticas de Comunicación**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/stats
+- **API Dashboard Permisos**: https://3000-i4am2qf41l47ryie80zbh-6532622b.e2b.dev/api/dashboard/permissions/1
 
 ## 👥 Credenciales de Prueba
 
@@ -500,6 +517,7 @@ npm run deploy:prod         # Deploy específico a producción
 | **Repositorio Científico** | ✅ | 100% | **NUEVO: HU-14 implementado completamente** |
 | **Indicadores CTeI** | ✅ | 100% | **NUEVO: HU-15 implementado completamente** |
 | **Notificaciones y Chat** | ✅ | 80% | **NUEVO: HU-17 iniciado - API y frontend base** |
+| **Dashboard Control Panel** | ✅ | 100% | **NUEVO: Panel centralizado con control de acceso granular** |
 | **Panel Admin** | ✅ | 100% | **Errores resueltos, completamente operativo** |
 | **Sistema de Logo** | ✅ | 100% | **Nuevo: Configuración dinámica implementada** |
 | **Monitoreo** | ✅ | 100% | **Corregido: Sistema profesional completo** |
@@ -603,6 +621,8 @@ Este proyecto está desarrollado para CODECTI - Corporación para el Desarrollo 
 > 📊 **HU-15 Indicadores CTeI**: ✅ Implementado completamente - Dashboard ejecutivo de métricas gubernamentales
 > 
 > 🔔 **HU-17 Notificaciones**: 🔄 Implementación iniciada - Sistema de comunicación inteligente con API REST completa
+> 
+> 🎛️ **Dashboard Control Centralizado**: ✅ Panel de control unificado con RBAC granular y configuración desde admin/roles
 > 
 > ✅ **Panel de Administración**: Totalmente operativo con acceso directo a todos los sistemas
 > 
