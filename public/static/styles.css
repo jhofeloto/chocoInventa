@@ -1611,3 +1611,71 @@ select.form-input {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
+/* HU-12: Analytics Dashboard Styles */
+.btn-gradient-primary {
+  background: linear-gradient(135deg, var(--analytics-primary), var(--analytics-secondary));
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gradient-primary:hover {
+  background: linear-gradient(135deg, var(--analytics-secondary), var(--analytics-accent));
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(87, 118, 174, 0.4);
+}
+
+.btn-gradient-primary:active {
+  transform: translateY(0);
+}
+
+.btn-gradient-secondary {
+  background: linear-gradient(135deg, var(--analytics-accent), var(--analytics-secondary));
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gradient-secondary:hover {
+  background: linear-gradient(135deg, var(--analytics-secondary), var(--analytics-primary));
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(100, 116, 139, 0.4);
+}
+
+.btn-gradient-secondary:active {
+  transform: translateY(0);
+}
+
+/* Chart container styling */
+.chart-container {
+  position: relative;
+  padding: 1rem;
+}
+
+.chart-container canvas {
+  max-height: 100% !important;
+}
+
+/* Analytics dashboard responsive grid */
+@media (max-width: 1024px) {
+  .grid.grid-cols-1.md\\:grid-cols-6 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid.grid-cols-1.md\\:grid-cols-6 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .grid.grid-cols-1.lg\\:grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}

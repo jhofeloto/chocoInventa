@@ -12,6 +12,10 @@ import settings from './routes/settings';
 import publicRoutes from './routes/public';
 import newsRoutes from './routes/news';
 import publicNewsRoutes from './routes/publicNews';
+import eventsRoutes from './routes/events';
+import publicEventsRoutes from './routes/publicEvents';
+import resourcesRoutes from './routes/resources';
+import publicResourcesRoutes from './routes/publicResources';
 import { loggingMiddleware, logger } from './monitoring/logger';
 import { systemLoggingMiddleware, systemLogger } from './monitoring/systemLogger';
 import systemLogs from './routes/systemLogs';
@@ -45,13 +49,25 @@ app.route('/api/auth', auth);
 app.route('/api/projects', projects);
 app.route('/api/users', users);
 app.route('/api/news', newsRoutes); // HU-09: News/Blog System (Admin)
+app.route('/api/events', eventsRoutes); // HU-10: Events System (Admin)
+app.route('/api/resources', resourcesRoutes); // HU-11: Resources System (Admin)
 app.route('/api/monitoring', monitoring);
 app.route('/api/system-logs', systemLogs); // Nueva ruta para logs del sistema
 app.route('/api/settings', settings);
 
-// Public API Routes (No authentication required) - HU-08: Portal Público, HU-09: Noticias
+// HU-12: Analytics and Reports System
+import analyticsRoutes from './routes/analytics';
+app.route('/api/analytics', analyticsRoutes);
+
+// HU-13: Advanced File Management System
+import filesRoutes from './routes/files';
+app.route('/api/files', filesRoutes);
+
+// Public API Routes (No authentication required) - HU-08: Portal Público, HU-09: Noticias, HU-10: Eventos, HU-11: Recursos
 app.route('/api/public', publicRoutes);
 app.route('/api/public/news', publicNewsRoutes);
+app.route('/api/public/events', publicEventsRoutes);
+app.route('/api/public/resources', publicResourcesRoutes);
 
 // Public Portal Routes - HU-08: Portal Público de Proyectos
 app.get('/portal', (c) => {
@@ -522,6 +538,510 @@ app.get('/noticias', (c) => {
   );
 });
 
+// Public Events Routes - HU-10: Sistema de Eventos y Convocatorias
+app.get('/eventos', (c) => {
+  return c.render(
+    <div>
+      {/* Navigation */}
+      <nav className="navbar bg-white border-b border-gray-200 shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center py-4">
+            <div className="navbar-logo flex items-center">
+              <a href="/" className="flex items-center">
+                <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" className="h-10 mr-3" />
+                <div>
+                  <div className="font-bold text-xl text-primary">Choco Inventa</div>
+                  <div className="text-xs text-gray-600">Eventos CTeI</div>
+                </div>
+              </a>
+            </div>
+            <div className="nav-actions">
+              <a href="/portal" className="btn btn-outline mr-3">Portal de Proyectos</a>
+              <a href="/noticias" className="btn btn-outline mr-3">Noticias CTeI</a>
+              <a href="/dashboard" className="btn btn-outline mr-3">Dashboard Privado</a>
+              <a href="/" className="btn btn-primary">Inicio</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="min-h-screen bg-gray-50">
+        {/* Hero Section - Featured Events */}
+        <section className="hero-section bg-gradient-to-br from-codecti-primary via-codecti-secondary to-codecti-accent py-16">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+                <i className="fas fa-calendar-alt mr-4"></i>
+                Eventos CTeI
+              </h1>
+              <p className="text-xl text-white opacity-90 max-w-3xl mx-auto leading-relaxed">
+                Descubre conferencias, talleres, convocatorias y seminarios que impulsan la ciencia y tecnología en el Chocó
+              </p>
+            </div>
+
+            {/* Featured Events Container */}
+            <div id="featuredEventsContainer" className="mb-8">
+              <div className="flex items-center justify-center">
+                <i className="fas fa-spinner fa-spin text-white text-2xl"></i>
+                <span className="ml-3 text-white">Cargando eventos destacados...</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Quick Stats */}
+        <section className="py-8 bg-white border-b">
+          <div className="container mx-auto px-4">
+            <div id="eventsStatsContainer" className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto text-center">
+              <div className="stat-item">
+                <div className="text-2xl font-bold text-codecti-primary">
+                  <i className="fas fa-spinner fa-spin"></i>
+                </div>
+                <div className="text-sm text-gray-600">Eventos Totales</div>
+              </div>
+              <div className="stat-item">
+                <div className="text-2xl font-bold text-codecti-secondary">
+                  <i className="fas fa-spinner fa-spin"></i>
+                </div>
+                <div className="text-sm text-gray-600">Próximos</div>
+              </div>
+              <div className="stat-item">
+                <div className="text-2xl font-bold text-codecti-accent">
+                  <i className="fas fa-spinner fa-spin"></i>
+                </div>
+                <div className="text-sm text-gray-600">Registrados</div>
+              </div>
+              <div className="stat-item">
+                <div className="text-2xl font-bold text-green-600">
+                  <i className="fas fa-spinner fa-spin"></i>
+                </div>
+                <div className="text-sm text-gray-600">Categorías</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Search and Filters */}
+        <section className="py-8 bg-white border-b">
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                {/* Search Form */}
+                <form id="eventsSearchForm" className="flex-1 max-w-md">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="eventsSearchInput"
+                      placeholder="Buscar eventos..."
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-codecti-primary focus:border-transparent"
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <i className="fas fa-search text-gray-400"></i>
+                    </div>
+                    <button
+                      type="submit"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      <i className="fas fa-arrow-right text-codecti-primary hover:text-codecti-secondary"></i>
+                    </button>
+                  </div>
+                </form>
+
+                {/* Filters */}
+                <div className="flex flex-wrap items-center space-x-4">
+                  <select id="eventsCategoryFilter" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-codecti-primary">
+                    <option value="">Todas las categorías</option>
+                  </select>
+                  
+                  <select id="eventsTypeFilter" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-codecti-primary">
+                    <option value="">Todos los tipos</option>
+                    <option value="conference">Conferencias</option>
+                    <option value="workshop">Talleres</option>
+                    <option value="convocatoria">Convocatorias</option>
+                    <option value="seminar">Seminarios</option>
+                    <option value="feria">Ferias</option>
+                  </select>
+                  
+                  <select id="eventsTimeFilter" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-codecti-primary">
+                    <option value="">Todos los tiempos</option>
+                    <option value="upcoming">Próximos</option>
+                    <option value="this_month">Este mes</option>
+                    <option value="past">Pasados</option>
+                  </select>
+                  
+                  <select id="eventsSortFilter" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-codecti-primary">
+                    <option value="start_date_asc">Fecha (próximos primero)</option>
+                    <option value="start_date_desc">Fecha (recientes primero)</option>
+                    <option value="title_asc">Título A-Z</option>
+                    <option value="title_desc">Título Z-A</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Results Count */}
+              <div className="mt-4">
+                <p id="eventsResultsCount" className="text-sm text-gray-600">Cargando eventos...</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Events Content */}
+        <section className="py-12">
+          <div className="container mx-auto px-4">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                {/* Main Events Grid */}
+                <div className="lg:col-span-3">
+                  <div id="eventsContent">
+                    <div id="eventsContainer" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6 mb-8">
+                      <div className="col-span-full text-center py-12">
+                        <i className="fas fa-spinner fa-spin text-codecti-primary text-4xl mb-4"></i>
+                        <p className="text-gray-600">Cargando eventos...</p>
+                      </div>
+                    </div>
+
+                    {/* Pagination */}
+                    <div id="eventsPagination"></div>
+                  </div>
+                </div>
+
+                {/* Sidebar */}
+                <div className="lg:col-span-1">
+                  <div className="space-y-6">
+                    {/* Upcoming Events */}
+                    <div id="upcomingEventsContainer">
+                      <div className="bg-white rounded-lg shadow-md p-6">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">
+                          <i className="fas fa-clock mr-2 text-codecti-primary"></i>
+                          Cargando eventos próximos...
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Categories */}
+                    <div id="eventsCategoriesContainer">
+                      <div className="bg-white rounded-lg shadow-md p-6">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">
+                          <i className="fas fa-tags mr-2 text-codecti-primary"></i>
+                          Categorías
+                        </h3>
+                        <div className="space-y-2">
+                          <div className="text-center py-4">
+                            <i className="fas fa-spinner fa-spin text-codecti-primary"></i>
+                            <p className="text-sm text-gray-600 mt-2">Cargando...</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Links */}
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4">
+                        <i className="fas fa-external-link-alt mr-2 text-codecti-primary"></i>
+                        Enlaces Rápidos
+                      </h3>
+                      <ul className="space-y-3">
+                        <li>
+                          <a href="/portal" className="flex items-center text-codecti-primary hover:text-codecti-secondary transition-colors">
+                            <i className="fas fa-flask mr-2"></i>
+                            Portal de Proyectos
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/noticias" className="flex items-center text-codecti-primary hover:text-codecti-secondary transition-colors">
+                            <i className="fas fa-newspaper mr-2"></i>
+                            Noticias CTeI
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/dashboard" className="flex items-center text-codecti-primary hover:text-codecti-secondary transition-colors">
+                            <i className="fas fa-chart-line mr-2"></i>
+                            Dashboard Privado
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/" className="flex items-center text-codecti-primary hover:text-codecti-secondary transition-colors">
+                            <i className="fas fa-home mr-2"></i>
+                            Página de Inicio
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Event Modal */}
+      <div id="eventModal" className="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div id="eventModalContent">
+          {/* Content will be dynamically inserted */}
+        </div>
+      </div>
+
+      {/* Registration Modal */}
+      <div id="registrationModal" className="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div id="registrationModalContent">
+          {/* Content will be dynamically inserted */}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <div className="flex items-center mb-4">
+                <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" className="h-8 mr-3" />
+                <div className="font-bold text-lg">Choco Inventa</div>
+              </div>
+              <p className="text-gray-300">
+                Portal de eventos de Ciencia, Tecnología e Innovación del Chocó
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Enlaces</h4>
+              <ul className="space-y-2 text-gray-300">
+                <li><a href="/" className="hover:text-white">Inicio</a></li>
+                <li><a href="/eventos" className="hover:text-white">Eventos CTeI</a></li>
+                <li><a href="/noticias" className="hover:text-white">Noticias CTeI</a></li>
+                <li><a href="/portal" className="hover:text-white">Portal de Proyectos</a></li>
+                <li><a href="/dashboard" className="hover:text-white">Dashboard</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">CODECTI Chocó</h4>
+              <p className="text-gray-300 text-sm">
+                Corporación para el Desarrollo de la Ciencia, la Tecnología y la Innovación del Chocó
+              </p>
+            </div>
+          </div>
+          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2025 CODECTI Chocó. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Scripts */}
+      <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+      <script src="/static/public-events.js"></script>
+      <script dangerouslySetInnerHTML={{
+        __html: `
+          document.addEventListener('DOMContentLoaded', function() {
+            if (typeof PublicEvents !== 'undefined') {
+              PublicEvents.init();
+            }
+          });
+        `
+      }}></script>
+    </div>
+  );
+});
+
+// Public Resources Routes - HU-11: Sistema de Recursos y Documentos Científicos
+app.get('/recursos', (c) => {
+  return c.render(
+    <div>
+      {/* Navigation */}
+      <nav className="navbar bg-white border-b border-gray-200 shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center py-4">
+            <div className="navbar-logo flex items-center">
+              <a href="/" className="flex items-center">
+                <img src="/static/logo-choco-inventa.png" alt="Choco Inventa" className="h-10 mr-3" />
+                <div>
+                  <div className="font-bold text-xl text-primary">Choco Inventa</div>
+                  <div className="text-xs text-gray-600">Recursos Científicos</div>
+                </div>
+              </a>
+            </div>
+            
+            <div className="nav-actions">
+              <a href="/" className="btn btn-outline mr-3">
+                <i className="fas fa-home mr-2"></i>
+                Inicio
+              </a>
+              <a href="/portal" className="btn btn-outline mr-3">
+                <i className="fas fa-flask mr-2"></i>
+                Proyectos
+              </a>
+              <a href="/noticias" className="btn btn-outline mr-3">
+                <i className="fas fa-newspaper mr-2"></i>
+                Noticias
+              </a>
+              <a href="/eventos" className="btn btn-outline mr-3">
+                <i className="fas fa-calendar mr-2"></i>
+                Eventos
+              </a>
+              <button id="showLoginModal" className="btn btn-outline">
+                <i className="fas fa-sign-in-alt mr-2"></i>
+                Acceder
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="hero-section bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">
+              <i className="fas fa-book-open text-primary mr-4"></i>
+              Recursos Científicos del Chocó
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Accede a documentos, manuales, datasets y recursos científicos de la región del Chocó Biogeográfico. 
+              Conocimiento libre y abierto para el desarrollo científico y tecnológico.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Resources Portal Content */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          {/* Categories */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center">Categorías de Recursos</h2>
+            <div id="resourceCategories" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+              {/* Categories will be loaded here */}
+            </div>
+          </div>
+
+          {/* Filters and Search */}
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              <i className="fas fa-search mr-2"></i>
+              Buscar Recursos
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Búsqueda</label>
+                <input type="text" id="searchInput" className="form-input w-full" placeholder="Título, autor, palabras clave..." />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Recurso</label>
+                <select id="typeFilter" className="form-select w-full">
+                  <option value="">Todos los tipos</option>
+                  <option value="document">Documentos</option>
+                  <option value="manual">Manuales</option>
+                  <option value="dataset">Datasets</option>
+                  <option value="presentation">Presentaciones</option>
+                  <option value="software">Software</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                <select id="categoryFilter" className="form-select w-full">
+                  <option value="">Todas las categorías</option>
+                  {/* Categories options will be loaded here */}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Ordenar por</label>
+                <select id="sortFilter" className="form-select w-full">
+                  <option value="publication_date-desc">Más recientes</option>
+                  <option value="publication_date-asc">Más antiguos</option>
+                  <option value="title-asc">Título A-Z</option>
+                  <option value="title-desc">Título Z-A</option>
+                  <option value="downloads_count-desc">Más descargados</option>
+                  <option value="views_count-desc">Más vistos</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <div id="resultsInfo" className="text-sm text-gray-600">
+                {/* Results info will be loaded here */}
+              </div>
+              <button id="clearFilters" className="btn btn-secondary btn-sm">
+                <i className="fas fa-times mr-2"></i>
+                Limpiar Filtros
+              </button>
+            </div>
+          </div>
+
+          {/* Resources Grid */}
+          <div id="publicResourcesGrid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* Resources will be loaded here */}
+          </div>
+
+          {/* Pagination */}
+          <div id="resourcesPagination" className="flex justify-center">
+            {/* Pagination will be loaded here */}
+          </div>
+        </div>
+      </section>
+
+      {/* Login Modal */}
+      <div id="loginModal" className="modal">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h3>Acceder al Sistema</h3>
+            <button className="modal-close" id="closeLoginModal">
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
+          <div className="modal-body">
+            <form id="loginForm">
+              <div className="form-group">
+                <label htmlFor="loginEmail">Correo Electrónico</label>
+                <input type="email" id="loginEmail" className="form-input" placeholder="tu@email.com" required />
+              </div>
+              <div className="form-group">
+                <label htmlFor="loginPassword">Contraseña</label>
+                <input type="password" id="loginPassword" className="form-input" placeholder="••••••••" required />
+              </div>
+              <button type="submit" className="btn btn-primary w-full">Iniciar Sesión</button>
+            </form>
+            <div className="modal-footer">
+              <p>¿No tienes cuenta? <a href="/portal" className="text-primary">Explora nuestros recursos públicos</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Resource Details Modal */}
+      <div id="resourceModal" className="modal">
+        <div className="modal-content modal-lg">
+          <div className="modal-header">
+            <h3 id="resourceModalTitle">Detalles del Recurso</h3>
+            <button className="modal-close" id="closeResourceModal">
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
+          <div className="modal-body" id="resourceModalContent">
+            {/* Resource details will be loaded here */}
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+      <script src="/static/public-resources.js"></script>
+      <script dangerouslySetInnerHTML={{
+        __html: `
+          document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the public resources portal
+            if (typeof PublicResourcesPortal !== 'undefined') {
+              new PublicResourcesPortal();
+            }
+          });
+        `
+      }}></script>
+    </div>
+  );
+});
+
 // Main application routes - Landing Page
 app.get('/', (c) => {
   return c.render(
@@ -540,6 +1060,12 @@ app.get('/', (c) => {
               </a>
               <a href="/noticias" className="btn btn-outline mr-3">
                 Noticias CTeI
+              </a>
+              <a href="/eventos" className="btn btn-outline mr-3">
+                Eventos
+              </a>
+              <a href="/recursos" className="btn btn-outline mr-3">
+                Recursos
               </a>
               <button id="showLoginModal" className="btn btn-outline">
                 Iniciar Sesión
@@ -937,7 +1463,15 @@ app.get('/admin', (c) => {
               
               <div class="card p-6">
                 <h3 class="text-lg font-semibold mb-4">Herramientas de Administración</h3>
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+                  <a href="/analytics" class="btn btn-gradient-primary">
+                    <i class="fas fa-chart-pie mr-2"></i>
+                    Dashboard Analítico
+                  </a>
+                  <a href="/files" class="btn btn-gradient-secondary">
+                    <i class="fas fa-folder-open mr-2"></i>
+                    Gestor de Archivos
+                  </a>
                   <button id="configureLogoButton" class="btn btn-primary">
                     <i class="fas fa-image mr-2"></i>
                     Configurar Logo
@@ -964,6 +1498,59 @@ app.get('/admin', (c) => {
           </div>
         </main>
       </div>
+    </div>
+  );
+});
+
+// HU-12: Analytics Dashboard Route
+app.get('/analytics', (c) => {
+  return c.render(
+    <div>
+      <head>
+        <title>Dashboard Analítico - CODECTI Chocó</title>
+        <meta name="description" content="Dashboard analítico completo con métricas y reportes de la plataforma CODECTI" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+      </head>
+      
+      <div id="analytics-container">
+        {/* Content will be loaded by analytics-dashboard.js */}
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Inicializando Dashboard Analítico</h2>
+            <p className="text-gray-500">Cargando sistema de métricas y gráficos...</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Load Analytics Dashboard JavaScript */}
+      <script src="/static/analytics-dashboard.js"></script>
+    </div>
+  );
+});
+
+// HU-13: File Manager Route
+app.get('/files', (c) => {
+  return c.render(
+    <div>
+      <head>
+        <title>Gestor de Archivos - CODECTI Chocó</title>
+        <meta name="description" content="Sistema avanzado de gestión de archivos y documentos de la plataforma CODECTI" />
+      </head>
+      
+      <div id="file-manager-container">
+        {/* Content will be loaded by file-manager.js */}
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Inicializando Gestor de Archivos</h2>
+            <p className="text-gray-500">Cargando sistema de documentos avanzado...</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Load File Manager JavaScript */}
+      <script src="/static/file-manager.js"></script>
     </div>
   );
 });
